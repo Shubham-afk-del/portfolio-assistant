@@ -27,6 +27,18 @@ contact:
 availability:
   status: TODO(owner) # confirm: are you also open to part-time / internship work before May 2027?
   full_time_from: 2027-06
+  # TODO(owner): this text was pre-written and asserts an entitlement not yet
+  # held. The eVisa on file shows Student leave valid 29 Dec 2025 to 4 May 2027;
+  # the Graduate Route is an application made after course completion, not a
+  # status already granted. Rewrite it as what is true today plus what is
+  # intended, or the bot will overstate your position to a recruiter who checks.
+  # Verified conditions of the current status, for whatever you decide to say:
+  #   - up to 20 hours/week during term time, full-time in holidays
+  #   - a placement is permitted where it is a compulsory, assessed part of the course
+  #   - cannot fill a permanent full-time vacancy until a Skilled Worker or
+  #     Graduate visa application has been made
+  #   - permanent full-time work on applying for the Graduate Route, once the
+  #     course is completed
   notes: >
     MSc completes May 2027. Graduate Route (post-study work) visa from that point,
     giving two years of unrestricted UK work authorisation with no sponsorship
@@ -139,7 +151,14 @@ experience:
     role: Senior Analyst — IT Support
     start: 2023-06
     end: 2025-12
-    location: India
+    location: Noida, India
+    # Verified against the relieving cum experience letter, 19 Dec 2025
+    # (ref 9464608252): joined 28 Jun 2023, relieved 18 Dec 2025, emp code
+    # 46321722, designation on the letter is "Sr Analyst", local grade A5.
+    # NOTE: the letter's DOJ (28 Jun 2023) is two days BEFORE the Tech Mahindra
+    # last working day (30 Jun 2023). Anyone verifying both letters sees a
+    # three-day overlap. TODO(owner): decide the one-line explanation now
+    # rather than in an interview.
     stack: [Python, ServiceNow, Active Directory, Tanium, Bomgar]
     highlights:
       - Technical bridge between front-line operations and development teams, translating business requirements into technical solutions.
@@ -154,7 +173,10 @@ experience:
     role: Associate Technical Support
     start: 2022-08
     end: 2023-06
-    location: India
+    location: Noida, India
+    # Verified against the service and relieving letters, 27 Nov 2024
+    # (ref BPS/HR/2024/899271): 26 Aug 2022 to 30 Jun 2023, designation
+    # "Associate-Technical Support", band U1, circle IBU TAC.
     stack: [Salesforce CRM]
     highlights:
       - Technical support for Netgear and Orbi networking devices, resolving complex configuration and connectivity issues.
@@ -166,6 +188,10 @@ experience:
     start: 2021-08
     end: 2022-05
     location: India
+    # Verified against the service letter, 2 Dec 2022 (ref BPS/HR/2022/769061):
+    # 6 Aug 2021 to 18 May 2022, designation "Associate-Customer Support",
+    # band U1, circle BSGDOM1. Location not stated on the letter.
+    # The gap INTAKE §7 asks about is 18 May 2022 to 26 Aug 2022, ~14 weeks.
     stack: [Kapture CRM]
     highlights:
       - Customer support for the JioMart e-commerce platform in a high-volume contact centre.
@@ -196,7 +222,7 @@ certifications:
   - name: Advanced Certificate Programme in Data Science (specialisation in Natural Language Processing)
     issuer: International Institute of Information Technology Bangalore
     date: 2025-10-28
-    verified: true # certificate on file
+    verified: true # certificate on file, checked: names the NLP specialisation, dated 28 Oct 2025
   - name: Foundations of Responsible AI
     issuer: Northeastern University
     date: 2024

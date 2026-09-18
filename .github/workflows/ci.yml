@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref; free minutes are finite.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Prints the outstanding TODO(owner) paths in content/profile.yaml.
+      # Exits 0 when fields are outstanding — that is expected output, not a
+      # failure (PHASE-0.md §2). It exits non-zero only on schema violations.
+      - name: profile check
+        run: npm run profile:check
+
+      - name: typecheck
+        run: npm run typecheck
+
+      - name: lint
+        run: npm run lint
+
+      # `prebuild` runs the profile check again; keeping it means a broken
+      # profile fails the build the same way it would locally.
+      - name: build
+        run: npm run build
