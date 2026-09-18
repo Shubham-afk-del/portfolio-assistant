@@ -30,9 +30,9 @@ export default function Page() {
 
       <footer className="border-rule mx-auto w-full max-w-5xl border-t px-5 py-6 sm:px-8">
         <p className="text-ink-muted max-w-[68ch] text-label">
-          An AI assistant, and it may be imprecise — the résumé is the
-          authoritative record. Answers will cite their sources so any claim can
-          be checked.
+          An AI assistant, and it may be imprecise. The résumé is the
+          authoritative record, and answers will cite their sources so any claim
+          can be checked.
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-label">

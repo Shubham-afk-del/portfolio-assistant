@@ -27,7 +27,7 @@ export function Composer() {
       </div>
 
       <p id="composer-status" className="text-ink-muted mt-3 max-w-[60ch] text-label">
-        The assistant is not answering yet — it goes live once the retrieval
+        The assistant is not answering yet. It goes live once the retrieval
         pipeline and its eval harness are in place. Until then the résumé is the
         authoritative record.
       </p>

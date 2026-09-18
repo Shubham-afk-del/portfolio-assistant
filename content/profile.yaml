@@ -11,7 +11,9 @@
 name: Shubham Kumar Singh
 preferred_name: Shubham
 pronouns: he/him
-headline: TODO(owner) # see PHASE-0.md §3 for drafting guidance
+headline: >-
+  I spent three years keeping enterprise IT running. Now I'm doing an MSc in AI
+  and building systems I can show you the numbers for.
 location: London, UK
 
 contact:
@@ -27,42 +29,66 @@ contact:
 # Availability — recruiters ask this first
 # ---------------------------------------------------------------------------
 availability:
-  status: TODO(owner) # confirm: are you also open to part-time / internship work before May 2027?
+  status: >-
+    Open to part-time work alongside the MSc, up to 20 hours a week in term time
+    and full time during university holidays, a summer 2027 internship, an
+    industrial placement where it forms an assessed part of the programme, and
+    full-time roles from June 2027.
   full_time_from: 2027-06
-  # TODO(owner): this text was pre-written and asserts an entitlement not yet
-  # held. The eVisa on file shows Student leave valid 29 Dec 2025 to 4 May 2027;
-  # the Graduate Route is an application made after course completion, not a
-  # status already granted. Rewrite it as what is true today plus what is
-  # intended, or the bot will overstate your position to a recruiter who checks.
-  # Verified conditions of the current status, for whatever you decide to say:
+  # Rewritten 18 Sep 2026 against the eVisa on file (Student leave, 29 Dec 2025
+  # to 4 May 2027). The previous wording asserted the Graduate Route as though
+  # already held. Verified conditions of the current status:
   #   - up to 20 hours/week during term time, full-time in holidays
   #   - a placement is permitted where it is a compulsory, assessed part of the course
   #   - cannot fill a permanent full-time vacancy until a Skilled Worker or
   #     Graduate visa application has been made
   #   - permanent full-time work on applying for the Graduate Route, once the
   #     course is completed
-  notes: >
-    MSc completes May 2027. Graduate Route (post-study work) visa from that point,
-    giving two years of unrestricted UK work authorisation with no sponsorship
-    required during that period.
+  notes: >-
+    MSc completes May 2027. Current permission is a Student visa valid until
+    4 May 2027, which allows up to 20 hours of work a week in term time and full
+    time during university holidays. For a permanent full-time role from
+    graduation I would apply for the Graduate Route, which grants two years of
+    unrestricted UK work with no sponsorship required. That application has not
+    been made yet.
   # TODO(owner): if you DO want part-time or a summer internship during study,
   # add it here — your student visa permits limited term-time hours. Confirm the
   # exact permitted hours on your BRP/eVisa before publishing a number.
 
 work_authorization:
-  disclose: TODO(owner) # true | false | "refer_to_email"
-  statement: TODO(owner) # write this sentence yourself — see INTAKE §2
+  disclose: true
+  # Drafted from the eVisa on file, 18 Sep 2026, and pending the owner's
+  # approval of the wording. Nationality is deliberately left out: a recruiter
+  # needs to know the right to work, not where it comes from.
+  statement: >-
+    I'm in the UK on a Student visa valid until 4 May 2027, which allows up to
+    20 hours of work a week in term time and full time during university
+    holidays. From graduation in May 2027 I intend to apply for the Graduate
+    Route, which would give two years of unrestricted UK work with no
+    sponsorship required.
 
 locations_considered:
   - London
-  - TODO(owner) # UK-wide? remote? relocation?
+  - UK-wide
+  - Remote (UK)
+  - Open to relocation within the UK
 
 target_roles:
   - AI Engineer
   - Machine Learning Engineer
-  - TODO(owner) # third title, in the wording recruiters actually use
+  - AI / ML Intern or Placement
 
-summary: TODO(owner) # 3-4 sentences. Written in your voice, not résumé-speak.
+summary: >-
+  I spent three years in enterprise IT operations at Capgemini and Tech Mahindra,
+  handling 50 or more incidents a day and administering Active Directory and
+  endpoint compliance. Near the end of that I built a Python tool that used a
+  language model to turn access requests into concrete proposed changes for me to
+  approve, and that is where the interest in AI systems started. I'm now doing an
+  MSc in Artificial Intelligence and Computer Science at Northeastern University
+  London, with an NLP specialisation from IIIT Bangalore completed in October
+  2025. I have not shipped machine learning in a production role, so this
+  assistant is the work sample: built in the open, with its retrieval quality
+  measured rather than asserted.
 
 # ---------------------------------------------------------------------------
 # Skills — evidence pre-filled from your résumé. Levels are yours.
@@ -70,87 +96,112 @@ summary: TODO(owner) # 3-4 sentences. Written in your voice, not résumé-speak.
 # working = shipped something real | familiar = coursework or tutorials only
 # ---------------------------------------------------------------------------
 skills:
+  # Levels set 18 Sep 2026 against the evidence actually on file. Years are
+  # filled only where they follow from the employment dates; the rest are
+  # TODO(owner) rather than estimated.
   - name: Python
-    level: TODO(owner)
+    level: working
     years: TODO(owner)
-    evidence: >
-      Automated repetitive incident-reporting tasks at Capgemini. Two analysis
-      projects (delivery-time regression, NYC taxi EDA). IIIT-B Data Science
-      programme.
-      TODO(owner): name the specific Capgemini scripts and what they did.
+    evidence: >-
+      Wrote a Python tool at Capgemini that used an LLM to prepare Active
+      Directory account and access changes, which I reviewed before they were
+      applied. It saved roughly 2 to 5 hours of my own time a week. I was its
+      only user and it was retired when I left. Two ML assignments on real data:
+      delivery-time regression over 175,777 rows and an EDA over 3,014,248 rows.
 
   - name: Pandas / NumPy
-    level: TODO(owner)
+    level: working
     years: TODO(owner)
-    evidence: "LR delivery-time prediction and NYC taxi EDA projects; IIIT-B coursework."
+    evidence: >-
+      Cleaning and feature engineering on both assignments, including reducing a
+      3,014,248 row taxi dataset to 489,542 usable rows.
 
   - name: Scikit-learn
-    level: TODO(owner)
+    level: working
     years: TODO(owner)
-    evidence: "Supervised regression pipeline with preprocessing and feature engineering."
+    evidence: >-
+      Linear regression pipeline on Porter delivery data: 175,777 rows, an 80/20
+      split, Recursive Feature Elimination from 12 features to 8, R squared of
+      0.8737 and MAE of 2.45 minutes on scaled features.
+
+  - name: SQL
+    level: working
+    years: TODO(owner)
+    evidence: TODO(owner) # where specifically? a query you wrote that mattered
 
   - name: NLP
-    level: TODO(owner)
+    level: familiar
     years: TODO(owner)
-    evidence: >
-      IIIT Bangalore Advanced Certificate in Data Science, NLP specialisation
-      (28 Oct 2025).
+    evidence: >-
+      IIIT Bangalore Advanced Certificate in Data Science with a specialisation
+      in Natural Language Processing, awarded 28 October 2025. Coursework rather
+      than shipped work.
       TODO(owner): which techniques and assignments specifically?
 
   - name: PyTorch / TensorFlow
-    level: TODO(owner) # if this is `familiar`, write `familiar`
+    level: familiar
     years: TODO(owner)
-    evidence: TODO(owner)
-
-  - name: SQL
-    level: TODO(owner)
-    years: TODO(owner)
-    evidence: TODO(owner)
+    evidence: >-
+      Coursework and tutorials only. No trained model in production or in a
+      public repository yet, and the honest version says so.
 
   - name: JavaScript / TypeScript
-    level: TODO(owner)
+    level: working
     years: TODO(owner)
-    evidence: "Notes_App_AE2. This project will add substantially to this row."
+    evidence: >-
+      Notes_App_AE2 and university coursework. This assistant is a TypeScript
+      codebase and will carry the row further once I have written and can
+      explain the retrieval pipeline myself.
 
   - name: Docker
-    level: TODO(owner)
+    level: working
     years: TODO(owner)
-    evidence: TODO(owner)
+    evidence: TODO(owner) # what did you containerise, and did you run it?
 
   - name: AWS
-    level: TODO(owner)
+    level: familiar
     years: TODO(owner)
-    evidence: "AWS Cloud Technical Essentials (2023). TODO(owner): hands-on use beyond the cert?"
+    evidence: >-
+      AWS Cloud Technical Essentials, 2023. A certificate, with no hands-on
+      production use behind it.
 
   - name: Git
-    level: TODO(owner)
+    level: working
     years: TODO(owner)
-    evidence: TODO(owner)
+    evidence: "Daily use across coursework, the two analysis projects and this repository."
 
   - name: C++
-    level: TODO(owner)
+    level: familiar
     years: TODO(owner)
-    evidence: TODO(owner)
+    evidence: "BCA and diploma coursework only."
 
-  # Enterprise IT — genuinely differentiating for platform and MLOps-adjacent roles.
-  # Don't hide these; three years of production incident response is real experience.
+  # Enterprise IT. Three years of production incident response is real
+  # experience and these are the strongest calibrated rows on the profile.
   - name: ServiceNow
-    level: TODO(owner)
-    years: TODO(owner)
-    evidence: "Managed and prioritised 50+ daily incidents against SLA targets at Capgemini."
+    level: strong
+    years: 2.5
+    evidence: >-
+      Managed and prioritised 50 or more daily incidents against SLA targets for
+      two and a half years at Capgemini, in a performance-monitored environment.
+
   - name: Active Directory / Tanium
-    level: TODO(owner)
-    years: TODO(owner)
-    evidence: "Account administration, access permissions and endpoint compliance at Capgemini."
+    level: strong
+    years: 2.5
+    evidence: >-
+      Account administration, access permissions and endpoint compliance across
+      enterprise environments at Capgemini.
+
   - name: Salesforce CRM
-    level: TODO(owner)
-    years: TODO(owner)
-    evidence: "Case management at Tech Mahindra (Netgear/Orbi support)."
+    level: working
+    years: 1
+    evidence: >-
+      Case management for Netgear and Orbi support at Tech Mahindra, August 2022
+      to June 2023.
 
 # ---------------------------------------------------------------------------
 experience:
   - company: Capgemini
-    role: Senior Analyst — IT Support
+    role: Senior Analyst, IT Support
     start: 2023-06
     end: 2025-12
     location: Noida, India
@@ -210,7 +261,7 @@ education:
     credential: Postgraduate Diploma in Computer Science
     start: 2025
     end: 2026
-    status: TODO(owner)
+    status: completed # TODO(owner): exact award date, so the bot can answer "when"
   - school: Chandigarh University
     credential: Bachelor of Computer Applications (BCA)
     start: 2021
@@ -245,21 +296,25 @@ projects:
     one_liner: Linear regression model predicting delivery time, with EDA and preprocessing.
     repo: https://github.com/Shubham-afk-del/LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-
     stack: [Python, Pandas, NumPy, Scikit-learn, Matplotlib]
-    case_study: content/case-studies/delivery-time-prediction.md # TODO(owner): write it
+    case_study: content/case-studies/delivery-time-prediction.md
   - name: EDA_Optimising_NYC_Taxis
     one_liner: Exploratory analysis of NYC taxi data to identify optimisation opportunities.
     repo: https://github.com/Shubham-afk-del/EDA_Optimising_NYC_Taxis_Shubham_Kumar_Singh
     stack: [Python, Pandas, Matplotlib]
-    case_study: content/case-studies/nyc-taxis-eda.md # TODO(owner): write it
+    case_study: content/case-studies/nyc-taxis-eda.md
   - name: Notes_App_AE2
-    one_liner: TODO(owner)
+    one_liner: >-
+      Notes application built for the Web Services module of the MSc, in plain
+      JavaScript. University coursework rather than production work.
     repo: https://github.com/Shubham-afk-del/Notes_App_AE2
     stack: [JavaScript]
   - name: This assistant
     one_liner: Retrieval-grounded assistant with a measured retrieval pipeline and a trained scope classifier.
     case_study: content/case-studies/this-assistant.md # write after Phase 4
 
-languages: TODO(owner)
+languages:
+  - English
+  - Hindi
 awards: []
 publications: []
 
@@ -269,14 +324,32 @@ faq: []  # TODO(owner): add pre-written answers as recruiters reveal what they a
 # Canned answers. Used verbatim. The model never improvises on these.
 # ---------------------------------------------------------------------------
 sensitive_topics:
-  compensation: TODO(owner) # safe default: "Best discussed directly — shubhamsingh90390@gmail.com"
-  reason_for_leaving_capgemini: TODO(owner) # if it was to start the MSc, say so plainly
-  career_gap_2022: TODO(owner) # May–Aug 2022
-  limited_ml_production_experience: TODO(owner)
-  # ^ You WILL be asked this. Write the honest, confident version: three years of
-  #   production IT operations, an MSc in progress, an NLP specialisation, and this
-  #   system as the end-to-end ML work sample. Honest beats inflated — inflated
-  #   gets caught in the interview.
+  # Used verbatim. Written in the third person, because the assistant represents
+  # Shubham rather than speaking as him.
+  compensation: >-
+    Best discussed directly with Shubham at shubhamsingh90390@gmail.com. He
+    hasn't given me a figure to quote, and I'd rather not guess at one.
+  reason_for_leaving_capgemini: >-
+    He resigned in December 2025 to move to London and start the MSc in
+    Artificial Intelligence and Computer Science at Northeastern University
+    London. His last working day was 18 December 2025.
+  career_gap_2022: >-
+    He was between roles from May to August 2022, concentrating on his BCA
+    coursework and exams, before joining Tech Mahindra's technical support team
+    in August 2022.
+  limited_ml_production_experience: >-
+    Straight answer: he has not shipped machine learning in a production role,
+    and he would tell you that himself. What he does have is three years of
+    production IT operations, an MSc in AI in progress, an NLP specialisation
+    from IIIT Bangalore awarded in October 2025, two analysis projects on real
+    datasets of 175,777 and 3,014,248 rows, and this assistant, which he is
+    building in the open as an end-to-end ML work sample. The repository is
+    public, so the work can be judged directly rather than taken on trust.
 
 do_not_discuss:
-  - TODO(owner)
+  # Hard refusals. Everything else in scope is answerable; the three topics in
+  # sensitive_topics have scripted answers rather than refusals.
+  - Visa or immigration detail beyond the statement in work_authorization
+  - Capgemini's internal systems, tooling or processes; he remains bound by the
+    confidentiality and IP terms of his employment
+  - Family or personal life
