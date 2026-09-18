@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * Design tokens. The approved plan lives in DESIGN-TOKENS.md; this file is its
+ * only implementation. Every contrast ratio in the comments is computed.
+ *
+ * Semantic names, not colour names: `accent` is spent exclusively on evidence
+ * (citation marks, source links) and focus. `rule` is decorative only — any
+ * hairline that bounds an interactive control uses `rule-strong`, which clears
+ * 3:1 for WCAG 1.4.11.
+ * ------------------------------------------------------------------------- */
+
+:root {
+  --ink: #14171c; /* 16.61:1 on paper */
+  --ink-muted: #55606e; /*  5.91:1 on paper */
+  --paper: #f5f6f8;
+  --sunken: #e8eaee;
+  --rule: #bfc5ce; /*  1.61:1 — decorative separators only */
+  --rule-strong: #7f8894; /*  3.32:1 — borders of interactive controls */
+  --accent: #1f3d7a; /*  9.68:1 on paper, 8.69:1 on sunken */
+  --caution: #8a5300; /*  5.85:1 on paper */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e7e9ec; /* 15.31:1 on paper */
+    --ink-muted: #9aa4b0; /*  7.37:1 on paper */
+    --paper: #101317;
+    --sunken: #171b21;
+    --rule: #2c333c; /*  1.46:1 — decorative separators only */
+    --rule-strong: #5a6472; /*  3.10:1 — borders of interactive controls */
+    --accent: #8fb0ff; /*  8.71:1 on paper, 8.08:1 on sunken */
+    --caution: #e0a93b; /*  8.79:1 on paper */
+  }
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-paper: var(--paper);
+  --color-sunken: var(--sunken);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-accent: var(--accent);
+  --color-caution: var(--caution);
+
+  /* Two families ship globally. IBM Plex Mono is loaded per-route on /evals,
+   * /experiments and /stats, where genuine tabular data exists. */
+  --font-prose: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  /* Type scale: 13 / 15 / 17 / 18 / 21 / 28 / 34 */
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.25rem;
+  --text-ui: 0.9375rem;
+  --text-ui--line-height: 1.375rem;
+  --text-prose-sm: 1.0625rem;
+  --text-prose-sm--line-height: 1.625rem;
+  --text-prose: 1.125rem;
+  --text-prose--line-height: 1.75rem;
+  --text-lead: 1.3125rem;
+  --text-lead--line-height: 1.75rem;
+  --text-headline: 1.75rem;
+  --text-headline--line-height: 2.125rem;
+  --text-headline-lg: 2.125rem;
+  --text-headline-lg--line-height: 2.5rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+  }
+
+  /* One focus treatment everywhere, in the evidence accent. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Motion budget: citation expansion and the streaming caret. Nothing else. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
