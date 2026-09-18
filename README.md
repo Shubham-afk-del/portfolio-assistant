@@ -1,7 +1,7 @@
 # Portfolio assistant
 
 An ML system with a measured retrieval pipeline, a trained scope classifier, and an eval
-harness that gates deploys — which happens to answer recruiters' questions about
+harness that gates deploys  which happens to answer recruiters' questions about
 Shubham Kumar Singh's engineering work. Every claim it makes traces to a source document.
 
 **Status: Phase 0 (foundation).** No AI, no retrieval, no database yet. What exists is the
