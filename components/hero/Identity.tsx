@@ -4,7 +4,7 @@ import { publicFileSize } from "@/lib/asset";
 /**
  * Supporting information around the composer, not a banner above it
  * (PHASE-0.md §4). Every field here is omitted entirely when it is still
- * TODO(owner) — never rendered as placeholder text.
+ * TODO(owner), never rendered as placeholder text.
  */
 export function Identity() {
   const headline = filled(profile.headline);

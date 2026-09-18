@@ -1,7 +1,7 @@
 # ARCHITECTURE.md
 
 Choices made, choices rejected, and the reasoning for each. Entries that depend on
-measurements are marked as such and stay empty until the numbers exist — an
+measurements are marked as such and stay empty until the numbers exist. An
 architecture document that asserts a benefit before measuring it is the thing this
 project is arguing against.
 
@@ -11,7 +11,7 @@ numbers.
 
 ---
 
-## 1. Hosting — Vercel Hobby
+## 1. Hosting: Vercel Hobby
 
 Chosen over Cloudflare Pages + Workers.
 
@@ -21,7 +21,7 @@ allowance is 100 GB-hours of compute a month, which is far more than this traffi
 profile needs.
 
 **What it costs us.** A 10-second wall-clock limit per function invocation. A slow
-retrieval turn — rewrite, hybrid search, rerank, then a streaming generation — can
+retrieval turn (rewrite, hybrid search, rerank, then a streaming generation) can
 plausibly approach that. Two things keep us inside it: `GENERATION.maxTokens` is 500
 in `lib/config.ts`, and generation streams, so the user sees first tokens long before
 the function returns.
@@ -41,7 +41,7 @@ traces, or any timeout appearing in production error logs.
 The corpus is 150–300 chunks. At that size a vector database is a network round trip
 we pay latency for and get nothing back from.
 
-**What runs instead.** Ingestion — locally or in the `ingest` Action — chunks,
+**What runs instead.** Ingestion, locally or in the `ingest` Action, chunks,
 contextualises, embeds, writes `data/index.json`, and commits it. The serverless
 function loads that file once per cold start and holds it in memory. Cosine
 similarity over 300 vectors is sub-millisecond in plain JavaScript. BM25 comes from
@@ -54,7 +54,7 @@ ablation table, and it will be measured rather than assumed.
 
 **Migration threshold.** Around 50k chunks, where the index stops fitting comfortably
 in function memory and cold-start parse time starts to matter. At that point this
-becomes Postgres + pgvector with an HNSW index — one datastore, not two, because
+becomes Postgres + pgvector with an HNSW index. One datastore, not two, because
 vectors, full-text search and application data can all live there.
 
 **Why this is the right way round.** Brute-force search over a corpus this size beats
@@ -94,7 +94,7 @@ a salary history to the open internet. The guardrail has to survive a tired even
 prints their paths; the UI omits those fields rather than rendering placeholder text;
 at runtime the same list tells the model which topics to decline.
 
-The alternative — failing the build on unfilled fields — sounds stricter and is
+The alternative, failing the build on unfilled fields, sounds stricter and is
 worse. It creates pressure to write something plausible into a field nobody has
 verified, which is exactly the failure this system exists to avoid. Surfacing beats
 blocking.
@@ -116,7 +116,7 @@ blocking.
 | Fixed 512-token chunking | **Pending Phase 4.** The spec expects structural chunking with parent expansion to win; the ablation table decides it, and the numbers go here either way. |
 | Pure vector search | **Pending Phase 4.** Recruiter queries are dense with exact technology names, where lexical retrieval should win. Rows 3→4 of the ablation settle it. |
 
-## 6. Free-tier limits — not yet verified
+## 6. Free-tier limits: not yet verified
 
 `ZERO-COST-STACK.md` documents the allowances this build depends on and is explicit
 that they move constantly. They have **not** been independently checked against each

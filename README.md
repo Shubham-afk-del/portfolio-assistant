@@ -1,7 +1,7 @@
 # Portfolio assistant
 
 An ML system with a measured retrieval pipeline, a trained scope classifier, and an eval
-harness that gates deploys  which happens to answer recruiters' questions about
+harness that gates deploys. It happens to answer recruiters' questions about
 Shubham Kumar Singh's engineering work. Every claim it makes traces to a source document.
 
 **Status: Phase 0 (foundation).** No AI, no retrieval, no database yet. What exists is the
@@ -12,7 +12,7 @@ behind it are in `SPEC-v2-ML-OVERLAY.md` §19.
 
 ## Five-minute local setup
 
-Requires Node 20+ and npm. Nothing else — Phase 0 makes no network calls and needs no keys.
+Requires Node 20+ and npm. Nothing else. Phase 0 makes no network calls and needs no keys.
 
 ```bash
 git clone <this repo> && cd portfolio-assistant
@@ -22,8 +22,7 @@ npm run dev                  # http://localhost:3000
 ```
 
 `npm run dev` and `npm run build` both print the outstanding `TODO(owner)` paths in
-`content/profile.yaml` before starting. That list is expected output, not an error — see
-below.
+`content/profile.yaml` before starting. That list is expected output, not an error. See below.
 
 ```bash
 npm run typecheck   # next typegen && tsc --noEmit, strict, no `any`
@@ -45,9 +44,9 @@ The same paths are handed to the model at runtime as topics it must decline.
 ```
 app/          routes; globals.css is the only implementation of the token plan
 lib/          profile.ts (loader), schema.ts (zod), config.ts (models + thresholds)
-content/      profile.yaml — structured facts, always in the system prompt, never retrieved
-public/       resume.pdf — authoritative; the download works with JavaScript disabled
-scripts/      check-profile.ts — the build-time outstanding-fields report
+content/      profile.yaml, structured facts, always in the system prompt, never retrieved
+public/       resume.pdf, authoritative; the download works with JavaScript disabled
+scripts/      check-profile.ts, the build-time outstanding-fields report
 ```
 
 `lib/config.ts` is the single source of truth for model IDs, retrieval flags and thresholds.

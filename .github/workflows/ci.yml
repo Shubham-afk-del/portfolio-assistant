@@ -25,7 +25,7 @@ jobs:
       - run: npm ci
 
       # Prints the outstanding TODO(owner) paths in content/profile.yaml.
-      # Exits 0 when fields are outstanding — that is expected output, not a
+      # Exits 0 when fields are outstanding, that is expected output, not a
       # failure (PHASE-0.md §2). It exits non-zero only on schema violations.
       - name: profile check
         run: npm run profile:check

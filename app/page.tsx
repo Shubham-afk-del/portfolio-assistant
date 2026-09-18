@@ -8,9 +8,9 @@ import { profile, filled } from "@/lib/profile";
  *
  * Structure comes from hairline rules and alignment; there are no cards and no
  * shadows. Two columns from 1024px: the claim column, and the evidence column
- * that is constant in meaning from first paint. Everything is server-rendered —
- * no Client Components at all, so the page and the résumé download work with
- * JavaScript disabled.
+ * that is constant in meaning from first paint. Everything is server-rendered,
+ * with no Client Components at all, so the page and the résumé download work
+ * with JavaScript disabled.
  */
 export default function Page() {
   const email = profile.contact.email;
