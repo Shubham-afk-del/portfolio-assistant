@@ -16,7 +16,9 @@ location: London, UK
 
 contact:
   email: shubhamsingh90390@gmail.com
-  phone: "+44 7887 136517" # TODO(owner): expose publicly, or email only?
+  # Phone deliberately omitted: email only. A number in a committed YAML file
+  # gets scraped, and the résumé PDF already carries it for anyone who downloads
+  # it — which is a person who has already shown intent. Decided 18 Sep 2026.
   github: https://github.com/Shubham-afk-del
   linkedin: https://linkedin.com/in/shubham-singh-00236a191
   booking: TODO(owner) # Cal.com free tier
