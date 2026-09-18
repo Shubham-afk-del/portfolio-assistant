@@ -1,0 +1,254 @@
+# profile.yaml — the single source of truth for structured facts.
+#
+# Everything here goes into the system prompt verbatim and is NEVER retrieved.
+# Narrative content (case studies, decisions, posts) lives in content/ and IS retrieved.
+#
+# Rules:
+#   - TODO(owner) means the bot will refuse to answer that topic. That is correct behaviour.
+#     Never replace a TODO with a guess.
+#   - Skill levels are yours to set. Do not round up.
+
+name: Shubham Kumar Singh
+preferred_name: Shubham
+pronouns: he/him
+headline: TODO(owner) # see PHASE-0.md §3 for drafting guidance
+location: London, UK
+
+contact:
+  email: shubhamsingh90390@gmail.com
+  phone: "+44 7887 136517" # TODO(owner): expose publicly, or email only?
+  github: https://github.com/Shubham-afk-del
+  linkedin: https://linkedin.com/in/shubham-singh-00236a191
+  booking: TODO(owner) # Cal.com free tier
+
+# ---------------------------------------------------------------------------
+# Availability — recruiters ask this first
+# ---------------------------------------------------------------------------
+availability:
+  status: TODO(owner) # confirm: are you also open to part-time / internship work before May 2027?
+  full_time_from: 2027-06
+  notes: >
+    MSc completes May 2027. Graduate Route (post-study work) visa from that point,
+    giving two years of unrestricted UK work authorisation with no sponsorship
+    required during that period.
+  # TODO(owner): if you DO want part-time or a summer internship during study,
+  # add it here — your student visa permits limited term-time hours. Confirm the
+  # exact permitted hours on your BRP/eVisa before publishing a number.
+
+work_authorization:
+  disclose: TODO(owner) # true | false | "refer_to_email"
+  statement: TODO(owner) # write this sentence yourself — see INTAKE §2
+
+locations_considered:
+  - London
+  - TODO(owner) # UK-wide? remote? relocation?
+
+target_roles:
+  - AI Engineer
+  - Machine Learning Engineer
+  - TODO(owner) # third title, in the wording recruiters actually use
+
+summary: TODO(owner) # 3-4 sentences. Written in your voice, not résumé-speak.
+
+# ---------------------------------------------------------------------------
+# Skills — evidence pre-filled from your résumé. Levels are yours.
+# expert = could lead others | strong = production, independent
+# working = shipped something real | familiar = coursework or tutorials only
+# ---------------------------------------------------------------------------
+skills:
+  - name: Python
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: >
+      Automated repetitive incident-reporting tasks at Capgemini. Two analysis
+      projects (delivery-time regression, NYC taxi EDA). IIIT-B Data Science
+      programme.
+      TODO(owner): name the specific Capgemini scripts and what they did.
+
+  - name: Pandas / NumPy
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: "LR delivery-time prediction and NYC taxi EDA projects; IIIT-B coursework."
+
+  - name: Scikit-learn
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: "Supervised regression pipeline with preprocessing and feature engineering."
+
+  - name: NLP
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: >
+      IIIT Bangalore Advanced Certificate in Data Science, NLP specialisation
+      (28 Oct 2025).
+      TODO(owner): which techniques and assignments specifically?
+
+  - name: PyTorch / TensorFlow
+    level: TODO(owner) # if this is `familiar`, write `familiar`
+    years: TODO(owner)
+    evidence: TODO(owner)
+
+  - name: SQL
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: TODO(owner)
+
+  - name: JavaScript / TypeScript
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: "Notes_App_AE2. This project will add substantially to this row."
+
+  - name: Docker
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: TODO(owner)
+
+  - name: AWS
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: "AWS Cloud Technical Essentials (2023). TODO(owner): hands-on use beyond the cert?"
+
+  - name: Git
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: TODO(owner)
+
+  - name: C++
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: TODO(owner)
+
+  # Enterprise IT — genuinely differentiating for platform and MLOps-adjacent roles.
+  # Don't hide these; three years of production incident response is real experience.
+  - name: ServiceNow
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: "Managed and prioritised 50+ daily incidents against SLA targets at Capgemini."
+  - name: Active Directory / Tanium
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: "Account administration, access permissions and endpoint compliance at Capgemini."
+  - name: Salesforce CRM
+    level: TODO(owner)
+    years: TODO(owner)
+    evidence: "Case management at Tech Mahindra (Netgear/Orbi support)."
+
+# ---------------------------------------------------------------------------
+experience:
+  - company: Capgemini
+    role: Senior Analyst — IT Support
+    start: 2023-06
+    end: 2025-12
+    location: India
+    stack: [Python, ServiceNow, Active Directory, Tanium, Bomgar]
+    highlights:
+      - Technical bridge between front-line operations and development teams, translating business requirements into technical solutions.
+      - Managed and prioritised 50+ daily incidents in ServiceNow, consistently meeting SLA targets under performance monitoring.
+      - Automated repetitive reporting tasks in Python, reducing manual effort in incident tracking and follow-up.
+      - Administered user accounts, access permissions and endpoint compliance across enterprise environments.
+      - Onboarded and mentored new team members on tools and support procedures.
+    # TODO(owner): quantify the automation. Hours saved per week? How many people used it?
+    # This is your only production Python and it currently has no numbers attached.
+
+  - company: Tech Mahindra (IBU TAC)
+    role: Associate Technical Support
+    start: 2022-08
+    end: 2023-06
+    location: India
+    stack: [Salesforce CRM]
+    highlights:
+      - Technical support for Netgear and Orbi networking devices, resolving complex configuration and connectivity issues.
+      - Managed case records in Salesforce CRM with SLA-compliant follow-up.
+      - Resolved escalated issues independently with consistently positive customer feedback.
+
+  - company: Tech Mahindra
+    role: Associate Customer Support
+    start: 2021-08
+    end: 2022-05
+    location: India
+    stack: [Kapture CRM]
+    highlights:
+      - Customer support for the JioMart e-commerce platform in a high-volume contact centre.
+      - Tracked and resolved cases in Kapture CRM with accurate record keeping.
+
+education:
+  - school: Northeastern University London
+    credential: MSc Artificial Intelligence & Computer Science
+    start: 2025
+    end: 2027-05
+    status: in progress
+    modules: TODO(owner) # current modules give the bot real talking points
+  - school: IIIT Bangalore
+    credential: Postgraduate Diploma in Computer Science
+    start: 2025
+    end: 2026
+    status: TODO(owner)
+  - school: Chandigarh University
+    credential: Bachelor of Computer Applications (BCA)
+    start: 2021
+    end: 2024
+  - school: Kalinga University
+    credential: Diploma in Computer Science
+    start: 2018
+    end: 2021
+
+certifications:
+  - name: Advanced Certificate Programme in Data Science (specialisation in Natural Language Processing)
+    issuer: International Institute of Information Technology Bangalore
+    date: 2025-10-28
+    verified: true # certificate on file
+  - name: Foundations of Responsible AI
+    issuer: Northeastern University
+    date: 2024
+    # TODO(owner): your MSc starts 2025 but this is dated 2024. Confirm the year or
+    # the issuer — the bot will be asked to reconcile your timeline and must not trip.
+  - name: AWS Cloud Technical Essentials
+    issuer: Amazon Web Services
+    date: 2023
+  - name: Foundations of Cybersecurity
+    issuer: Google
+    date: 2023
+  - name: Python Programming
+    issuer: upGrad
+    date: 2022
+
+projects:
+  - name: LR_Delivery_Time_Prediction
+    one_liner: Linear regression model predicting delivery time, with EDA and preprocessing.
+    repo: https://github.com/Shubham-afk-del/LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-
+    stack: [Python, Pandas, NumPy, Scikit-learn, Matplotlib]
+    case_study: content/case-studies/delivery-time-prediction.md # TODO(owner): write it
+  - name: EDA_Optimising_NYC_Taxis
+    one_liner: Exploratory analysis of NYC taxi data to identify optimisation opportunities.
+    repo: https://github.com/Shubham-afk-del/EDA_Optimising_NYC_Taxis_Shubham_Kumar_Singh
+    stack: [Python, Pandas, Matplotlib]
+    case_study: content/case-studies/nyc-taxis-eda.md # TODO(owner): write it
+  - name: Notes_App_AE2
+    one_liner: TODO(owner)
+    repo: https://github.com/Shubham-afk-del/Notes_App_AE2
+    stack: [JavaScript]
+  - name: This assistant
+    one_liner: Retrieval-grounded assistant with a measured retrieval pipeline and a trained scope classifier.
+    case_study: content/case-studies/this-assistant.md # write after Phase 4
+
+languages: TODO(owner)
+awards: []
+publications: []
+
+faq: []  # TODO(owner): add pre-written answers as recruiters reveal what they ask
+
+# ---------------------------------------------------------------------------
+# Canned answers. Used verbatim. The model never improvises on these.
+# ---------------------------------------------------------------------------
+sensitive_topics:
+  compensation: TODO(owner) # safe default: "Best discussed directly — shubhamsingh90390@gmail.com"
+  reason_for_leaving_capgemini: TODO(owner) # if it was to start the MSc, say so plainly
+  career_gap_2022: TODO(owner) # May–Aug 2022
+  limited_ml_production_experience: TODO(owner)
+  # ^ You WILL be asked this. Write the honest, confident version: three years of
+  #   production IT operations, an MSc in progress, an NLP specialisation, and this
+  #   system as the end-to-end ML work sample. Honest beats inflated — inflated
+  #   gets caught in the interview.
+
+do_not_discuss:
+  - TODO(owner)

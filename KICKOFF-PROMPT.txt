@@ -1,0 +1,70 @@
+================================================================================
+PHASE 0 — paste this into Claude Code as one block
+================================================================================
+
+Read these files in this order before writing any code:
+SPEC-v2.md, SPEC-v2-ML-OVERLAY.md, SPEC-ADDENDUM-ESCALATION.md, ZERO-COST-STACK.md, PHASE-0.md.
+
+Precedence on conflicts: ZERO-COST-STACK wins on infrastructure, SPEC-v2-ML-OVERLAY wins on
+everything else, SPEC-v2 is the base.
+
+These three files already exist. Read them, use them, do not regenerate or reformat them:
+content/profile.yaml, lib/schema.ts, lib/config.ts.
+
+Implement Phase 0 only, as defined in PHASE-0.md section 2. Stop when its section 5 checklist
+passes and show me what you did. Do not start Phase 1.
+
+Before writing any UI, read /mnt/skills/public/frontend-design/SKILL.md and follow its
+two-pass process: produce the token plan first (4-6 named hex values, typefaces and their
+roles, a layout concept with an ASCII wireframe, and the design principles), critique it
+against the brief in PHASE-0.md section 4, tell me what you changed and why, then build.
+
+Hard constraints:
+- TypeScript strict. No `any`.
+- TODO(owner) is a valid value throughout profile.yaml. The build must NOT fail on it — it
+  prints the outstanding paths via outstandingFields() and omits those fields from the UI.
+  Never substitute placeholder or invented content for a TODO(owner) field.
+- No AI, no API calls, no database, no embeddings in this phase.
+- Do not duplicate any value from lib/config.ts as a literal anywhere else.
+- Résumé download must work with JavaScript disabled.
+- Responsive to 360px, visible keyboard focus, prefers-reduced-motion respected, AA contrast.
+
+Work in this order and pause after each for my review:
+1. Design token plan and critique (no code yet).
+2. Scaffold: Next.js App Router, Tailwind, strict tsconfig, lib/profile.ts loading and
+   validating profile.yaml, .env.example, README with 5-minute setup.
+3. Hero and résumé download built to the approved token plan.
+4. GitHub Actions: typecheck, lint, build. Stub the ingest and eval jobs with TODOs.
+5. ARCHITECTURE.md: the hosting choice with its reason, and the no-vector-DB decision from
+   ZERO-COST-STACK section 4 written up with the reasoning and the migration threshold.
+
+Ask me before installing anything not implied by the specs.
+
+
+================================================================================
+LATER PHASES — same shape, change the number
+================================================================================
+
+Read SPEC-v2.md, SPEC-v2-ML-OVERLAY.md, SPEC-ADDENDUM-ESCALATION.md and ZERO-COST-STACK.md.
+ZERO-COST-STACK wins on infrastructure, SPEC-v2-ML-OVERLAY on everything else.
+
+Implement Phase N from SPEC-v2-ML-OVERLAY.md section 19 only. Stop and show me. Do not
+continue to the next phase.
+
+Before you start, tell me your plan and which files you expect to touch. If any decision in
+the plan isn't forced by the specs, flag it and tell me the alternative you rejected — I need
+to be able to defend every choice in this repo.
+
+
+================================================================================
+NOTES
+================================================================================
+
+- When Claude Code hands you the token plan at step 1, read it properly. If the palette is a
+  cream background with a terracotta accent, or the hero is your name set in a serif over a
+  gradient, send it back. Those are the current generated-design defaults.
+
+- The pauses are the point. If all five steps run in one go you won't know what changed, and
+  you need to understand every line for SPEC-v2-ML-OVERLAY.md section 20.
+
+- Commit after every phase. Read the diff before you commit.
