@@ -103,7 +103,6 @@ skills:
   # TODO(owner) rather than estimated.
   - name: Python
     level: working
-    years: TODO(owner)
     evidence: >-
       Wrote a Python tool at Capgemini that used an LLM to prepare Active
       Directory account and access changes, which I reviewed before they were
@@ -113,14 +112,12 @@ skills:
 
   - name: Pandas / NumPy
     level: working
-    years: TODO(owner)
     evidence: >-
       Cleaning and feature engineering on both assignments, including reducing a
       3,014,248 row taxi dataset to 489,542 usable rows.
 
   - name: Scikit-learn
     level: working
-    years: TODO(owner)
     evidence: >-
       Linear regression pipeline on Porter delivery data: 175,777 rows, an 80/20
       split, Recursive Feature Elimination from 12 features to 8, R squared of
@@ -128,12 +125,10 @@ skills:
 
   - name: SQL
     level: working
-    years: TODO(owner)
     evidence: TODO(owner) # where specifically? a query you wrote that mattered
 
   - name: NLP
     level: familiar
-    years: TODO(owner)
     evidence: >-
       IIIT Bangalore Advanced Certificate in Data Science with a specialisation
       in Natural Language Processing, awarded 28 October 2025. Coursework rather
@@ -142,14 +137,12 @@ skills:
 
   - name: PyTorch / TensorFlow
     level: familiar
-    years: TODO(owner)
     evidence: >-
       Coursework and tutorials only. No trained model in production or in a
       public repository yet, and the honest version says so.
 
   - name: JavaScript / TypeScript
     level: working
-    years: TODO(owner)
     evidence: >-
       Notes_App_AE2 and university coursework. This assistant is a TypeScript
       codebase and will carry the row further once I have written and can
@@ -157,45 +150,38 @@ skills:
 
   - name: Docker
     level: working
-    years: TODO(owner)
     evidence: TODO(owner) # what did you containerise, and did you run it?
 
   - name: AWS
     level: familiar
-    years: TODO(owner)
     evidence: >-
       AWS Cloud Technical Essentials, 2023. A certificate, with no hands-on
       production use behind it.
 
   - name: Git
     level: working
-    years: TODO(owner)
     evidence: "Daily use across coursework, the two analysis projects and this repository."
 
   - name: C++
     level: familiar
-    years: TODO(owner)
     evidence: "BCA and diploma coursework only."
 
   # Enterprise IT. Three years of production incident response is real
   # experience and these are the strongest calibrated rows on the profile.
   - name: ServiceNow
     level: strong
-    years: 2.5
     evidence: >-
       Managed and prioritised 50 or more daily incidents against SLA targets for
       two and a half years at Capgemini, in a performance-monitored environment.
 
   - name: Active Directory / Tanium
     level: strong
-    years: 2.5
     evidence: >-
       Account administration, access permissions and endpoint compliance across
       enterprise environments at Capgemini.
 
   - name: Salesforce CRM
     level: working
-    years: 1
     evidence: >-
       Case management for Netgear and Orbi support at Tech Mahindra, August 2022
       to June 2023.
@@ -295,12 +281,19 @@ certifications:
 
 projects:
   - name: LR_Delivery_Time_Prediction
-    one_liner: Linear regression model predicting delivery time, with EDA and preprocessing.
+    one_liner: >-
+      Delivery-time regression over 175,777 orders. All 12 features scored test
+      R² 0.8800; eliminating four of them cost six points of R², which is the
+      opposite of what the brief expected.
     repo: https://github.com/Shubham-afk-del/LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-
     stack: [Python, Pandas, NumPy, Scikit-learn, Matplotlib]
     case_study: content/case-studies/delivery-time-prediction.md
   - name: EDA_Optimising_NYC_Taxis
-    one_liner: Exploratory analysis of NYC taxi data to identify optimisation opportunities.
+    one_liner: >-
+      Exploratory analysis of 489,542 taxi trips sampled across all twelve months
+      of 2023. Tipping is highest between 10pm and 2am and on card rather than
+      cash. Three figures in the submitted notebook turned out to be plotted from
+      placeholder random data; the corrections are published alongside it.
     repo: https://github.com/Shubham-afk-del/EDA_Optimising_NYC_Taxis_Shubham_Kumar_Singh
     stack: [Python, Pandas, Matplotlib]
     case_study: content/case-studies/nyc-taxis-eda.md
@@ -311,7 +304,12 @@ projects:
     repo: https://github.com/Shubham-afk-del/Notes_App_AE2
     stack: [JavaScript]
   - name: This assistant
-    one_liner: Retrieval-grounded assistant with a measured retrieval pipeline and a trained scope classifier.
+    one_liner: >-
+      This site. A retrieval-grounded assistant that answers questions about my
+      work with every claim traced to a source document. In progress: the
+      retrieval pipeline and its eval harness are being built before the chat
+      interface, on purpose, so the answer quality is measured rather than
+      asserted.
     case_study: content/case-studies/this-assistant.md # write after Phase 4
 
 languages:

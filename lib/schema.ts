@@ -24,7 +24,12 @@ export type SkillLevel = z.infer<typeof SkillLevel>;
 export const Skill = z.object({
   name: z.string().min(1),
   level: pending(SkillLevel),
-  years: pending(z.number().nonnegative()),
+  /**
+   * Optional by owner's decision, 18 Sep 2026. A calibrated level plus a
+   * specific evidence line carries more information than a year count, and a
+   * year count invites the rounding-up this schema exists to prevent.
+   */
+  years: pending(z.number().nonnegative()).optional(),
   evidence: pending(z.string()),
 });
 
