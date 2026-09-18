@@ -29,11 +29,9 @@ contact:
 # Availability — recruiters ask this first
 # ---------------------------------------------------------------------------
 availability:
-  status: >-
-    Open to part-time work alongside the MSc, up to 20 hours a week in term time
-    and full time during university holidays, a summer 2027 internship, an
-    industrial placement where it forms an assessed part of the programme, and
-    full-time roles from June 2027.
+  # Kept short: the hero renders this as a chip beside the location. The detail
+  # lives in notes, which the model gets in full.
+  status: Open to part-time now, and full-time from June 2027
   full_time_from: 2027-06
   # Rewritten 18 Sep 2026 against the eVisa on file (Student leave, 29 Dec 2025
   # to 4 May 2027). The previous wording asserted the Graduate Route as though
@@ -45,6 +43,10 @@ availability:
   #   - permanent full-time work on applying for the Graduate Route, once the
   #     course is completed
   notes: >-
+    Open to part-time work alongside the MSc at up to 20 hours a week in term
+    time and full time during university holidays, a summer 2027 internship, an
+    industrial placement where it forms an assessed part of the programme, and
+    full-time roles from June 2027.
     MSc completes May 2027. Current permission is a Student visa valid until
     4 May 2027, which allows up to 20 hours of work a week in term time and full
     time during university holidays. For a permanent full-time role from
