@@ -14,10 +14,22 @@ const sourceSerif = Source_Serif_4({
   display: "swap",
 });
 
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000";
+
+const DESCRIPTION =
+  "A retrieval-grounded assistant that answers questions about one engineer's work, where every claim traces to a source document.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Ask about Shubham Kumar Singh",
-  description:
-    "A retrieval-grounded assistant that answers questions about one engineer's work, where every claim traces to a source document.",
+  description: DESCRIPTION,
+  openGraph: {
+    title: "Ask about Shubham Kumar Singh",
+    description: DESCRIPTION,
+    type: "website",
+    locale: "en_GB",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

@@ -198,3 +198,36 @@ Citation marks at 13px Inter with tabular numerals sit on the prose baseline wit
 underline; the expanded snippet is 15px Inter on `sunken` with a 2px `accent` left rule and the
 source title in `ink-muted`. That single component is where the boldness is spent, and it is
 the same component on both breakpoints, only its position moves.
+
+---
+
+## Amendments, 18 September 2026
+
+Recorded here rather than silently changed, because the point of the plan is that
+deviations are visible.
+
+**A persistent header was added.** The plan had no site chrome, on the reasoning that the
+composer is the product and everything else should be quiet. With four sections of content
+now under the hero, a visitor had no way to see what the page contained or to make contact
+without scrolling to the footer. The header is a hairline rule, the name, four section
+anchors and one bordered action, and it uses `backdrop-blur` over `paper/85` so the rule
+stays the only hard edge.
+
+The reference build this was compared against uses tabs here for three assistant modes
+(General, Recruiter, Interview). That is a good product idea and it is now on the Phase 5
+list. It was not copied as tabs, because tabs that switch nothing are a lie told in UI. The
+same structural affordance is expressed as navigation to sections that exist.
+
+**Monospace on the home route uses the system stack**, not IBM Plex Mono. The plan reserved
+mono for `/evals` and `/experiments` and kept the home route to two webfonts. Project metrics
+are genuine tabular data and belong in mono, so `--font-mono` is a system stack
+(`ui-monospace, SF Mono, Menlo`) and the home route still pays for exactly two font requests.
+Plex Mono still loads per-route where the tables are dense.
+
+**Sections carry `scroll-mt-20`.** Without it the sticky header covers the heading an
+in-page anchor just jumped to. Verified: with a 59px header, `#experience` lands its section
+top at 80px.
+
+**Project metrics are a fixed three-column grid**, not a wrapping flex row. Wrapping put a
+value in one row and left its label orphaned in the next, which is precisely the
+value-label pairing that has to stay unambiguous in a table of measurements.

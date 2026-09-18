@@ -66,6 +66,12 @@ export const Project = z.object({
   demo: z.string().url().optional(),
   stack: z.array(z.string()).default([]),
   case_study: z.string().optional(), // path into content/
+  /**
+   * Measured figures only, each traceable to the output it came from. Rendered
+   * in monospace, which SPEC-v2 §PHASE-0 permits for genuine tabular data and
+   * nothing else. An estimate must never appear here.
+   */
+  metrics: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
 });
 
 export const Profile = z.object({
