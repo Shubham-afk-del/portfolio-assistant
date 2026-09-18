@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -26,7 +26,7 @@ jobs:
       - run: npm ci
 
       - name: ingest corpus
-        run: echo "TODO(phase-1): npm run ingest"
+        run: 'echo "TODO(phase-1): npm run ingest"'
         # TODO(phase-1): implement ingest/run.ts, then replace the echo above.
         #   - loaders per source: resume.pdf, case studies, decisions, GitHub
         #     repos via an allowlist (SPEC-v2 §8)
@@ -41,4 +41,4 @@ jobs:
         #   GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       - name: commit the rebuilt index
-        run: echo "TODO(phase-1): commit data/index.json when it changes"
+        run: 'echo "TODO(phase-1): commit data/index.json when it changes"'
