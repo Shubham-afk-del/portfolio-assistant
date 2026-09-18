@@ -1,4 +1,4 @@
-import { profile } from "@/lib/profile";
+import { getProfile } from "@/lib/profile";
 import { publicFileSize } from "@/lib/asset";
 
 interface Source {
@@ -15,6 +15,7 @@ interface Source {
  * aligned to the line carrying their citation mark (DESIGN-TOKENS.md).
  */
 export function Sources() {
+  const profile = getProfile();
   const sources: Source[] = [
     {
       label: "resume.pdf",

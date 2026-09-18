@@ -1,7 +1,7 @@
 import { Identity } from "@/components/hero/Identity";
 import { Composer } from "@/components/hero/Composer";
 import { Sources } from "@/components/hero/Sources";
-import { profile, filled } from "@/lib/profile";
+import { getProfile, filled } from "@/lib/profile";
 
 /**
  * Phase 0 hero, built to the approved plan in DESIGN-TOKENS.md.
@@ -13,6 +13,7 @@ import { profile, filled } from "@/lib/profile";
  * with JavaScript disabled.
  */
 export default function Page() {
+  const profile = getProfile();
   const email = profile.contact.email;
   const linkedin = filled(profile.contact.linkedin);
 

@@ -1,4 +1,4 @@
-import { profile, filled } from "@/lib/profile";
+import { getProfile, filled } from "@/lib/profile";
 import { publicFileSize } from "@/lib/asset";
 
 /**
@@ -7,6 +7,7 @@ import { publicFileSize } from "@/lib/asset";
  * TODO(owner), never rendered as placeholder text.
  */
 export function Identity() {
+  const profile = getProfile();
   const headline = filled(profile.headline);
   const availability = filled(profile.availability.status);
   const resumeSize = publicFileSize("resume.pdf");

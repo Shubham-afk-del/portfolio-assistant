@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { Profile, outstandingFields, uncalibratedSkills } from "./schema";
@@ -8,16 +8,33 @@ import { Profile, outstandingFields, uncalibratedSkills } from "./schema";
  * facts (SPEC-v2 §4) and is read from disk, so this module must never reach the
  * browser. Import it from Server Components or route handlers only.
  *
- * Validation failures throw, because a malformed profile is a real build error. Unfilled
- * TODO(owner) fields do not throw: the schema treats them as valid, and they are
- * surfaced via `outstanding` instead. See lib/schema.ts for why.
+ * Validation failures throw, because a malformed profile is a real build error.
+ * Unfilled TODO(owner) fields do not: the schema treats them as valid, and they
+ * are surfaced via outstanding() instead. See lib/schema.ts for why.
+ *
+ * Cached on the file's mtime rather than at module scope. The YAML is not in the
+ * import graph, so Next has nothing to invalidate when it changes, and a
+ * module-scope singleton means every content edit needs a dev server restart.
+ * Phase 1 is corpus work, so that would be felt constantly. One statSync per
+ * access is cheaper than being wrong.
  */
 
 const PROFILE_PATH = join(process.cwd(), "content", "profile.yaml");
 
-function load(): Profile {
-  const raw = readFileSync(PROFILE_PATH, "utf8");
-  const parsed: unknown = parse(raw);
+interface Cached {
+  mtimeMs: number;
+  profile: Profile;
+  outstanding: readonly string[];
+  uncalibrated: readonly string[];
+}
+
+let cached: Cached | undefined;
+
+function load(): Cached {
+  const mtimeMs = statSync(PROFILE_PATH).mtimeMs;
+  if (cached !== undefined && cached.mtimeMs === mtimeMs) return cached;
+
+  const parsed: unknown = parse(readFileSync(PROFILE_PATH, "utf8"));
   const result = Profile.safeParse(parsed);
 
   if (!result.success) {
@@ -27,16 +44,28 @@ function load(): Profile {
     throw new Error(`content/profile.yaml failed validation:\n${issues}`);
   }
 
-  return result.data;
+  cached = {
+    mtimeMs,
+    profile: result.data,
+    outstanding: outstandingFields(result.data),
+    uncalibrated: uncalibratedSkills(result.data),
+  };
+  return cached;
 }
 
-export const profile: Profile = load();
+export function getProfile(): Profile {
+  return load().profile;
+}
 
 /** Dot-paths of every field still marked TODO(owner). */
-export const outstanding: readonly string[] = outstandingFields(profile);
+export function outstanding(): readonly string[] {
+  return load().outstanding;
+}
 
 /** Skills with no honest level set yet; the bot must not assert a level for these. */
-export const uncalibrated: readonly string[] = uncalibratedSkills(profile);
+export function uncalibrated(): readonly string[] {
+  return load().uncalibrated;
+}
 
 /**
  * True when a value is filled in. Used by the UI to omit outstanding fields
