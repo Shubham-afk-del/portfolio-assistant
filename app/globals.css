@@ -5,7 +5,7 @@
  * only implementation. Every contrast ratio in the comments is computed.
  *
  * Semantic names, not colour names: `accent` is spent exclusively on evidence
- * (citation marks, source links) and focus. `rule` is decorative only — any
+ * (citation marks, source links) and focus. `rule` is decorative only, any
  * hairline that bounds an interactive control uses `rule-strong`, which clears
  * 3:1 for WCAG 1.4.11.
  * ------------------------------------------------------------------------- */
@@ -15,8 +15,8 @@
   --ink-muted: #55606e; /*  5.91:1 on paper */
   --paper: #f5f6f8;
   --sunken: #e8eaee;
-  --rule: #bfc5ce; /*  1.61:1 — decorative separators only */
-  --rule-strong: #7f8894; /*  3.32:1 — borders of interactive controls */
+  --rule: #bfc5ce; /*  1.61:1, decorative separators only */
+  --rule-strong: #7f8894; /*  3.32:1, borders of interactive controls */
   --accent: #1f3d7a; /*  9.68:1 on paper, 8.69:1 on sunken */
   --caution: #8a5300; /*  5.85:1 on paper */
 }
@@ -27,8 +27,8 @@
     --ink-muted: #9aa4b0; /*  7.37:1 on paper */
     --paper: #101317;
     --sunken: #171b21;
-    --rule: #2c333c; /*  1.46:1 — decorative separators only */
-    --rule-strong: #5a6472; /*  3.10:1 — borders of interactive controls */
+    --rule: #2c333c; /*  1.46:1, decorative separators only */
+    --rule-strong: #5a6472; /*  3.10:1, borders of interactive controls */
     --accent: #8fb0ff; /*  8.71:1 on paper, 8.08:1 on sunken */
     --caution: #e0a93b; /*  8.79:1 on paper */
   }

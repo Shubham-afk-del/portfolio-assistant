@@ -8,7 +8,7 @@ import { Profile, outstandingFields, uncalibratedSkills } from "./schema";
  * facts (SPEC-v2 §4) and is read from disk, so this module must never reach the
  * browser. Import it from Server Components or route handlers only.
  *
- * Validation failures throw — a malformed profile is a real build error. Unfilled
+ * Validation failures throw, because a malformed profile is a real build error. Unfilled
  * TODO(owner) fields do not throw: the schema treats them as valid, and they are
  * surfaced via `outstanding` instead. See lib/schema.ts for why.
  */
@@ -40,7 +40,7 @@ export const uncalibrated: readonly string[] = uncalibratedSkills(profile);
 
 /**
  * True when a value is filled in. Used by the UI to omit outstanding fields
- * entirely rather than render placeholder text — inventing content is the one
+ * entirely rather than render placeholder text. Inventing content is the one
  * thing this system must never do.
  */
 export function isFilled(value: unknown): boolean {

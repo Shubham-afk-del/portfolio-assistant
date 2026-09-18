@@ -32,7 +32,7 @@ jobs:
         #     repos via an allowlist (SPEC-v2 §8)
         #   - structural chunking, 300-800 tokens, never mid-code-block
         #   - contextualise each chunk, cached by content hash so unchanged
-        #     content never re-pays for it — the most expensive step
+        #     content never re-pays for it, the most expensive step
         #   - embed, then write data/index.json (or packed Float32Array)
         #   - upsert by content hash, delete orphans, print "+12 −3 ~5"
         #   - REFUSE to publish any chunk marked `visibility: private`
