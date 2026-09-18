@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -25,7 +25,7 @@ jobs:
       - run: npm ci
 
       - name: run the golden set
-        run: echo "TODO(phase-3): npm run eval"
+        run: 'echo "TODO(phase-3): npm run eval"'
         # TODO(phase-3): implement evals/run.ts, then replace the echo above.
         #   - 60+ cases from evals/golden.yaml, including the 10 injection
         #     variants and the must-refuse unknown-fact cases
@@ -41,7 +41,7 @@ jobs:
         #   VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
 
       - name: gate on regressions
-        run: echo "TODO(phase-3): fail the build on a measured regression"
+        run: 'echo "TODO(phase-3): fail the build on a measured regression"'
         # TODO(phase-3): fail when
         #   - faithfulness falls below the confidence-interval lower bound
         #   - any injection case regresses
@@ -49,4 +49,4 @@ jobs:
         # Thresholds come from lib/config.ts. Never duplicate them here.
 
       - name: post the table as a PR comment
-        run: echo "TODO(phase-3): post evals/results.json as a PR comment"
+        run: 'echo "TODO(phase-3): post evals/results.json as a PR comment"'
