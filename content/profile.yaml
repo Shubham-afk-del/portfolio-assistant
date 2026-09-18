@@ -125,7 +125,11 @@ skills:
 
   - name: SQL
     level: working
-    evidence: TODO(owner) # where specifically? a query you wrote that mattered
+    evidence: >-
+      Database Management Systems (LCSCI7228) on the MSc: took business rules
+      through an ER model to a relational schema in SQL, normalised to 3NF, then
+      wrote eight queries of varying complexity and added indexes tested against
+      sample queries. The schema and the query set both scored full marks.
 
   - name: NLP
     level: familiar
@@ -149,8 +153,10 @@ skills:
       explain the retrieval pipeline myself.
 
   - name: Docker
-    level: working
-    evidence: TODO(owner) # what did you containerise, and did you run it?
+    level: familiar
+    evidence: >-
+      Tutorials and coursework only. I have not containerised and run an
+      application of my own, and the honest version says so.
 
   - name: AWS
     level: familiar
@@ -244,7 +250,15 @@ education:
     start: 2025
     end: 2027-05
     status: in progress
-    modules: TODO(owner) # current modules give the bot real talking points
+    modules:
+      - LCSCI7224 Web Services
+      - LCSCI7225 Programming Design Paradigm
+      - LCSCI7228 Database Management Systems
+      - LCSCI7235 Fundamentals of Computation
+      - LDSCI7234 Programming for Data Applications
+      - LDSCI7236 Theory & Applications of Data Analytics
+      - LPHIL7252 Artificial Intelligence & Data Ethics
+      - LDSCI7237 Artificial Intelligence Dissertation
   - school: IIIT Bangalore
     credential: Postgraduate Diploma in Computer Science
     start: 2025
@@ -288,6 +302,10 @@ projects:
     repo: https://github.com/Shubham-afk-del/LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-
     stack: [Python, Pandas, NumPy, Scikit-learn, Matplotlib]
     case_study: content/case-studies/delivery-time-prediction.md
+    metrics:
+      - { label: orders, value: "175,777" }
+      - { label: test R², value: "0.8800" }
+      - { label: MAE, value: "2.33 min" }
   - name: EDA_Optimising_NYC_Taxis
     one_liner: >-
       Exploratory analysis of 489,542 taxi trips sampled across all twelve months
@@ -297,6 +315,10 @@ projects:
     repo: https://github.com/Shubham-afk-del/EDA_Optimising_NYC_Taxis_Shubham_Kumar_Singh
     stack: [Python, Pandas, Matplotlib]
     case_study: content/case-studies/nyc-taxis-eda.md
+    metrics:
+      - { label: trips analysed, value: "489,542" }
+      - { label: sampled from, value: "3,014,248/mo" }
+      - { label: figures withdrawn, value: "3" }
   - name: Notes_App_AE2
     one_liner: >-
       Notes application built for the Web Services module of the MSc, in plain

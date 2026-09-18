@@ -12,7 +12,11 @@ interface SectionProps {
  */
 export function Section({ id, title, lede, children }: SectionProps) {
   return (
-    <section aria-labelledby={`${id}-heading`} className="border-rule border-t pt-8">
+    <section
+      id={id}
+      aria-labelledby={`${id}-heading`}
+      className="border-rule scroll-mt-20 border-t pt-8"
+    >
       <div className="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-10">
         <div>
           <h2 id={`${id}-heading`} className="text-ink text-ui font-medium">

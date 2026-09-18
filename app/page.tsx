@@ -1,3 +1,4 @@
+import { SiteHeader } from "@/components/SiteHeader";
 import { Identity } from "@/components/hero/Identity";
 import { Composer } from "@/components/hero/Composer";
 import { Sources } from "@/components/hero/Sources";
@@ -30,15 +31,17 @@ export default function Page() {
   const summary = filled(profile.summary);
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div id="top" className="flex min-h-[100dvh] flex-col">
       <a
-        href="#work"
+        href="#projects"
         className="focus-visible:bg-paper focus-visible:text-accent sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:top-2 focus-visible:left-2 focus-visible:z-10 focus-visible:px-3 focus-visible:py-2"
       >
         Skip to the work
       </a>
 
-      <main className="mx-auto w-full max-w-5xl grow px-5 py-12 sm:px-8 lg:py-20">
+      <SiteHeader />
+
+      <main className="mx-auto w-full max-w-5xl grow px-5 py-12 sm:px-8 lg:py-16">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-10">
           <div className="min-w-0">
             <Identity />
@@ -47,7 +50,7 @@ export default function Page() {
           <Sources />
         </div>
 
-        <div id="work" className="mt-16 space-y-12 lg:mt-20">
+        <div className="mt-16 space-y-12 lg:mt-20">
           {summary !== undefined && (
             <section aria-label="Summary" className="border-rule border-t pt-8">
               <p className="font-prose text-ink max-w-[68ch] text-prose">{summary}</p>
