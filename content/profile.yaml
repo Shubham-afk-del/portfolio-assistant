@@ -258,7 +258,7 @@ education:
       - LDSCI7234 Programming for Data Applications
       - LDSCI7236 Theory & Applications of Data Analytics
       - LPHIL7252 Artificial Intelligence & Data Ethics
-      - LDSCI7237 Artificial Intelligence Dissertation
+      - LDSCI7237 Artificial Intelligence Dissertation (agentic AI and LLMs)
   - school: IIIT Bangalore
     credential: Postgraduate Diploma in Computer Science
     start: 2025
@@ -340,7 +340,14 @@ languages:
 awards: []
 publications: []
 
-faq: []  # TODO(owner): add pre-written answers as recruiters reveal what they ask
+faq:
+  - q: What is your dissertation on?
+    a: >-
+      Agentic AI and large language models, for the MSc dissertation module
+      LDSCI7237 at Northeastern University London. It is the same ground as this
+      assistant, which is built as an agent over a retrieval pipeline, so the
+      dissertation and the build inform each other.
+  # TODO(owner): add more as recruiters reveal what they actually ask
 
 # ---------------------------------------------------------------------------
 # Canned answers. Used verbatim. The model never improvises on these.
