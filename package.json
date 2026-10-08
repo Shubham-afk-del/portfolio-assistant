@@ -10,7 +10,9 @@
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
-    "profile:check": "tsx scripts/check-profile.ts"
+    "profile:check": "tsx scripts/check-profile.ts",
+    "ingest": "tsx --env-file-if-exists=.env.local ingest/run.ts",
+    "search": "tsx --env-file-if-exists=.env.local scripts/search.ts"
   },
   "dependencies": {
     "next": "^16.3.5",

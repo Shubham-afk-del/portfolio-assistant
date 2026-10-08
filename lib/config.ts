@@ -20,11 +20,19 @@ export type Provider = "gemini" | "groq" | "voyage" | "anthropic" | "local";
 export const MODELS = {
   /** Final answer generation. Quality matters most here. */
   generate: { provider: "gemini" as Provider, model: "gemini-flash-latest" },
-  /** High-volume, latency-sensitive stages. */
-  rewrite: { provider: "groq" as Provider, model: "llama-3.1-8b-instant" },
-  contextualise: { provider: "groq" as Provider, model: "llama-3.1-8b-instant" },
+  /**
+   * High-volume, latency-sensitive stages.
+   *
+   * Was `llama-3.1-8b-instant` until 18 Sep 2026, when it was found to have
+   * been removed from Groq's catalogue. `groq/compound` and
+   * `groq/compound-mini` went the same way before 8 Oct 2026. Two deletions in
+   * three weeks is exactly the churn ZERO-COST-STACK §5 predicts, and the
+   * reason every call goes through lib/llm rather than naming a model inline.
+   */
+  rewrite: { provider: "groq" as Provider, model: "openai/gpt-oss-20b" },
+  contextualise: { provider: "groq" as Provider, model: "openai/gpt-oss-20b" },
   /** Fallback for the trained classifier's low-confidence band (Phase 6). */
-  classify: { provider: "groq" as Provider, model: "llama-3.1-8b-instant" },
+  classify: { provider: "groq" as Provider, model: "openai/gpt-oss-20b" },
   /** Eval judge. Kept separate so it can be upgraded independently of generation. */
   judge: { provider: "gemini" as Provider, model: "gemini-flash-latest" },
   embed: { provider: "voyage" as Provider, model: "voyage-3-large", dimensions: 1024 },
