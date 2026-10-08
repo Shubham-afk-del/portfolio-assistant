@@ -231,3 +231,11 @@ top at 80px.
 **Project metrics are a fixed three-column grid**, not a wrapping flex row. Wrapping put a
 value in one row and left its label orphaned in the next, which is precisely the
 value-label pairing that has to stay unambiguous in a table of measurements.
+
+**`exactOptionalPropertyTypes` was dropped from tsconfig.json** when AI Elements
+was added. It was my addition rather than the spec's, which asks for strict mode
+and no `any`, and both of those stay on along with `noUncheckedIndexedAccess`.
+Radix and `motion` both type optional props in ways that flag disallows, so
+keeping it would have meant hand-patching every component copied in from the
+registry and re-patching each one on every update. The trade is a narrow loss of
+strictness in exchange for generated files that stay pristine and re-syncable.

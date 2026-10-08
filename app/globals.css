@@ -1,13 +1,24 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
- * Design tokens. The approved plan lives in DESIGN-TOKENS.md; this file is its
- * only implementation. Every contrast ratio in the comments is computed.
+ * Design tokens. The approved plan is DESIGN-TOKENS.md; this file is its only
+ * implementation, and it stays the source of truth. shadcn/ui's semantic
+ * variables are mapped onto these further down rather than the other way
+ * round, so adding a component library cannot quietly change the palette.
  *
- * Semantic names, not colour names: `accent` is spent exclusively on evidence
- * (citation marks, source links) and focus. `rule` is decorative only, any
- * hairline that bounds an interactive control uses `rule-strong`, which clears
- * 3:1 for WCAG 1.4.11.
+ * Semantic names, not colour names. `evidence` is spent exclusively on
+ * citations, source links and focus. `rule` is decorative only; any hairline
+ * that bounds an interactive control uses `rule-strong`, which clears 3:1 for
+ * WCAG 1.4.11. Every ratio in the comments is computed.
+ *
+ * The evidence colour was called `--accent` until shadcn/ui was added, which
+ * uses `--accent` for a muted hover background: the same name for the opposite
+ * job. Renamed rather than aliased, because two meanings behind one token is
+ * how a design system rots.
  * ------------------------------------------------------------------------- */
 
 :root {
@@ -17,7 +28,7 @@
   --sunken: #e8eaee;
   --rule: #bfc5ce; /*  1.61:1, decorative separators only */
   --rule-strong: #7f8894; /*  3.32:1, borders of interactive controls */
-  --accent: #1f3d7a; /*  9.68:1 on paper, 8.69:1 on sunken */
+  --evidence: #1f3d7a; /*  9.68:1 on paper, 8.69:1 on sunken */
   --caution: #8a5300; /*  5.85:1 on paper */
 }
 
@@ -29,9 +40,49 @@
     --sunken: #171b21;
     --rule: #2c333c; /*  1.46:1, decorative separators only */
     --rule-strong: #5a6472; /*  3.10:1, borders of interactive controls */
-    --accent: #8fb0ff; /*  8.71:1 on paper, 8.08:1 on sunken */
+    --evidence: #8fb0ff; /*  8.71:1 on paper, 8.08:1 on sunken */
     --caution: #e0a93b; /*  8.79:1 on paper */
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * shadcn/ui's semantic layer, pointed at the tokens above. AI Elements
+ * components are styled with these names, so mapping them here is what makes a
+ * copied component look like it belongs to this page.
+ *
+ * --radius is 0 on purpose. The token plan has no rounded cards in it, and a
+ * component library's default corner radius is the fastest way to make a page
+ * look like every other page.
+ * ------------------------------------------------------------------------- */
+
+:root {
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--sunken);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sunken);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--sunken);
+  --accent-foreground: var(--ink);
+  --destructive: var(--caution);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--evidence);
+  --radius: 0rem;
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--paper);
+  --sidebar-accent: var(--sunken);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--rule);
+  --sidebar-ring: var(--evidence);
 }
 
 @theme inline {
@@ -41,14 +92,35 @@
   --color-sunken: var(--sunken);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
-  --color-accent: var(--accent);
+  --color-evidence: var(--evidence);
   --color-caution: var(--caution);
 
-  /* Two webfonts ship globally. IBM Plex Mono is still loaded per-route on
-   * /evals, /experiments and /stats, where the tables are dense. The project
-   * metrics on the home route use the system mono stack instead, so the home
-   * route pays for no third font request. Deviation recorded in
-   * DESIGN-TOKENS.md. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
+
+  /* Two webfonts ship globally: Inter for chrome, Source Serif 4 for prose.
+   * Monospace is the system stack, so tabular figures cost no font request. */
   --font-prose: var(--font-source-serif), Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
@@ -81,9 +153,9 @@
     font-family: var(--font-sans);
   }
 
-  /* One focus treatment everywhere, in the evidence accent. */
+  /* One focus treatment everywhere, in the evidence colour. */
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--evidence);
     outline-offset: 2px;
   }
 
