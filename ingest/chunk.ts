@@ -1,20 +1,9 @@
 import { createHash } from "node:crypto";
 import { RETRIEVAL_CONFIG } from "@/lib/config";
+import { estimateTokens } from "@/lib/tokens";
 import type { CorpusChunk, CorpusSection } from "@/lib/retrieval/types";
 
-/**
- * Token count, approximated at four characters per token.
- *
- * A real tokeniser would be exact and would cost a dependency and a download
- * for a number used only to decide where to split. The error is a few percent
- * on English prose, the bounds it feeds (300 to 800) are themselves chosen
- * rather than derived, and the chunk-size sweep in Phase 4 tunes against
- * measured recall rather than against this estimate. Recorded here so nobody
- * later reads `tokenCount` as exact.
- */
-export function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
-}
+export { estimateTokens };
 
 export function hash(...parts: string[]): string {
   return createHash("sha256").update(parts.join("\u0000")).digest("hex").slice(0, 16);

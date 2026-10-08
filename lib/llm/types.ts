@@ -50,6 +50,8 @@ export class ProviderError extends Error {
     message: string,
     readonly status: number,
     readonly retryable: boolean,
+    /** From the provider's Retry-After header, when it sends one. */
+    readonly retryAfterMs?: number,
   ) {
     super(message);
     this.name = "ProviderError";

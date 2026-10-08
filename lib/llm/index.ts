@@ -19,7 +19,9 @@ export * from "./types";
  * decoration.
  */
 async function withRetry<T>(label: string, run: () => Promise<T>): Promise<T> {
-  const delays = [500, 2000, 6000];
+  // Long enough to outlast a one-minute window, because a 3 RPM limit cannot
+  // be waited out in six seconds.
+  const delays = [2_000, 10_000, 30_000, 65_000];
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= delays.length; attempt += 1) {
@@ -28,7 +30,9 @@ async function withRetry<T>(label: string, run: () => Promise<T>): Promise<T> {
     } catch (error) {
       lastError = error;
       const retryable = error instanceof ProviderError && error.retryable;
-      const delay = delays[attempt];
+      const suggested =
+        error instanceof ProviderError ? error.retryAfterMs : undefined;
+      const delay = suggested ?? delays[attempt];
       if (!retryable || delay === undefined) break;
       console.warn(`  ${label} failed (${String(error)}), retrying in ${delay}ms`);
       await new Promise((resolve) => setTimeout(resolve, delay));

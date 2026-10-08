@@ -15,6 +15,7 @@ import { embed } from "@/lib/llm";
 import { chunkDocument, hash, type RawChunk } from "./chunk";
 import { contextualiseAll } from "./contextualise";
 import { loadMarkdown } from "./loaders/markdown";
+import { loadGithub } from "./loaders/github";
 import {
   INDEX_VERSION,
   type CorpusChunk,
@@ -38,12 +39,16 @@ async function main(): Promise<void> {
   const repoRoot = process.cwd();
   const started = Date.now();
 
-  const { loaded, skippedPrivate } = await loadMarkdown(repoRoot);
-  console.log(`\ningest: ${loaded.length} documents from content/`);
+  const { loaded: written, skippedPrivate } = await loadMarkdown(repoRoot);
+  console.log(`\ningest: ${written.length} documents from content/`);
   for (const path of skippedPrivate) {
     console.log(`  refused (visibility: private): ${path}`);
   }
-  if (loaded.length === 0) throw new Error("no public documents found in content/");
+  if (written.length === 0) throw new Error("no public documents found in content/");
+
+  console.log("  from the GitHub allowlist:");
+  const code = await loadGithub();
+  const loaded = [...written, ...code];
 
   // Chunk.
   const sections: CorpusSection[] = [];
