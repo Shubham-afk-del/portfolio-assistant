@@ -239,3 +239,51 @@ Radix and `motion` both type optional props in ways that flag disallows, so
 keeping it would have meant hand-patching every component copied in from the
 registry and re-patching each one on every update. The trade is a narrow loss of
 strictness in exchange for generated files that stay pristine and re-syncable.
+
+---
+
+## Amendment: glass surfaces, 8 October 2026
+
+At the owner's request, the interface moves to a glassmorphic treatment with
+motion. This is a real departure from the approved plan, which specified
+hairline rules with no cards and no shadows, so it is recorded rather than
+quietly applied. The `ui-ux-pro-max` skill was used for the decision, and two
+of its findings drove the implementation.
+
+**Its accessibility rating for glassmorphism is "conditional"**, requiring
+verified 4.5:1 text contrast, while its own checklist asks for a "vibrant
+background verified". Those pull against each other: a saturated field is what
+makes glass read, and text over a saturated field is what fails contrast. The
+resolution is architectural. **Nothing readable sits on the field.** Every piece
+of text sits on a glass panel, which frees the field to be saturated enough for
+the blur to have something to do.
+
+**Light and dark tint in opposite directions.** A white panel over a saturated
+field in dark mode lifts the surface until muted text fails, measured at
+4.11:1. Dark mode therefore uses a black-tinted panel. Every value below was
+computed against the composite at the strongest point of the field, not against
+the page background:
+
+| Pair | Light | Dark |
+|---|---|---|
+| ink on glass | 14.92:1 | 12.74:1 |
+| ink-muted on glass | 6.10:1 | 6.13:1 |
+| evidence on glass | 8.84:1 | 7.25:1 |
+| caution on glass | 6.15:1 | 7.31:1 |
+| control border on glass | 3.27:1 | 5.05:1 |
+
+Three tokens changed to pass at the stronger field: `ink-muted` darkened from
+`#55606E` to `#4C5765`, `caution` from `#8A5300` to `#7C4A00`, and a new
+`rule-on-glass` exists because `rule-strong` measured only 2.28:1 against a
+glass panel, which is lighter than `paper`.
+
+**Motion** follows the skill's easing guidance rather than one duration
+everywhere: entry decelerates on `cubic-bezier(0.16, 1, 0.3, 1)`, and the
+duration scales with distance, 180ms for a fade, 260ms for a message arriving,
+480ms for the console settling. The streaming caret is the only looping
+animation. Everything is still disabled under `prefers-reduced-motion`, which
+the skill rates severity High.
+
+**What did not change.** The radius is still 0, the accent is still spent only
+on evidence and focus, monospace is still reserved for measured figures, and
+the type scale is untouched.

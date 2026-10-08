@@ -15,7 +15,7 @@ import {
   PromptInputTextarea,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
-import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { Suggestion } from "@/components/ai-elements/suggestion";
 import { Source, Sources, SourcesContent, SourcesTrigger } from "@/components/ai-elements/sources";
 
 /**
@@ -63,7 +63,7 @@ export function Assistant() {
               );
 
               return (
-                <div key={message.id} className="space-y-3">
+                <div key={message.id} className="animate-rise space-y-3">
                   {sources.length > 0 && (
                     <Sources>
                       <SourcesTrigger count={sources.length} />
@@ -88,6 +88,12 @@ export function Assistant() {
                             className="font-prose text-ink text-prose-sm"
                           >
                             {part.text}
+                            {busy && message.role === "assistant" && (
+                              <span
+                                aria-hidden
+                                className="bg-evidence animate-caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.12em]"
+                              />
+                            )}
                           </p>
                         ) : null,
                       )}
@@ -101,26 +107,29 @@ export function Assistant() {
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="border-rule bg-paper border-t">
+      <div className="glass-divider border-t">
         <div className="mx-auto w-full max-w-3xl px-5 py-4 sm:px-8">
           {empty && (
-            <Suggestions className="mb-3">
+            <div
+              className="mb-3 flex flex-wrap gap-2"
+              aria-label="Suggested questions"
+            >
               {SUGGESTIONS.map((suggestion) => (
                 <Suggestion
                   key={suggestion}
                   suggestion={suggestion}
                   onClick={ask}
-                  className="border-rule text-ink-muted hover:bg-sunken hover:text-ink rounded-none border"
+                  className="border-rule-on-glass text-ink-muted hover:text-ink hover:border-evidence rounded-none border bg-transparent transition-colors duration-150"
                 />
               ))}
-            </Suggestions>
+            </div>
           )}
 
           <PromptInput
             onSubmit={(message: PromptInputMessage) => {
               ask(message.text);
             }}
-            className="border-rule-strong divide-rule rounded-none border shadow-none"
+            className="border-rule-on-glass divide-rule rounded-none border bg-transparent shadow-none"
           >
             <PromptInputBody>
               <PromptInputTextarea
