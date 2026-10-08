@@ -116,17 +116,57 @@ blocking.
 | Fixed 512-token chunking | **Pending Phase 4.** The spec expects structural chunking with parent expansion to win; the ablation table decides it, and the numbers go here either way. |
 | Pure vector search | **Pending Phase 4.** Recruiter queries are dense with exact technology names, where lexical retrieval should win. Rows 3→4 of the ablation settle it. |
 
-## 6. Free-tier limits: not yet verified
+## 6. Free-tier limits, measured
 
-`ZERO-COST-STACK.md` documents the allowances this build depends on and is explicit
-that they move constantly. They have **not** been independently checked against each
-provider's own documentation yet.
+Measured against the live APIs on 8 October 2026, not read off a pricing page.
+They are in `PROVIDER_LIMITS` in `lib/config.ts`.
 
-TODO(owner): before Phase 1 depends on any of them, verify the Voyage embedding
-allowance, the Groq RPM/RPD caps, the Gemini free-tier caps, and the Upstash daily
-command cap against the providers' own docs, and record the date checked here.
+| Provider | Limit | How it was found |
+|---|---|---|
+| Voyage, no payment method | 3 requests/min, 10K tokens/min | a 96-item embedding batch returned 429 with the limits in the body |
+| Groq, `openai/gpt-oss-20b` | 8K tokens/min | 429s throughout contextualisation |
+| GitHub, unauthenticated | 60 requests/hour | not hit; `GITHUB_TOKEN` raises it to 5,000 |
 
-## 7. Interview defense
+**What that costs.** A full re-ingest of 111 chunks takes about 14 minutes, and
+almost all of it is waiting. The work itself is seconds.
+
+**So the client throttles before it sends.** Retrying after a 429 is not enough
+when the limit is three requests a minute: the backoff has to outlast the
+window, and burning the quota to discover the limit wastes the thing that is
+already scarce. `lib/llm/throttle.ts` spaces requests per provider and holds a
+rolling token window, and `Retry-After` is honoured when the provider sends it.
+
+Two caches keep the cost down: contextualisation blurbs are keyed by content
+hash on disk, and embeddings are reused when the exact embedded string and
+model are unchanged. A no-op re-ingest takes under a second.
+
+**The cheapest improvement available.** Adding a payment method to Voyage lifts
+the 3 RPM limit without spending anything, since ingestion at this corpus size
+stays inside the free allowance. That is the first thing to do if ingestion time
+becomes annoying.
+
+## 7. Corpus size, and whether retrieval is load-bearing
+
+`SPEC-v2.md` §0 sets one condition for this project: the corpus has to be large
+enough that retrieval is genuinely necessary, with a target of 150k to 500k
+tokens. Bolting retrieval onto a few thousand tokens is a tell.
+
+Where it stands: **32 documents, 111 chunks, roughly 50,500 estimated tokens.**
+Written content (case studies, decision records, interview answers) is 7
+documents of it; the rest is code and notebooks from an allowlist of three
+public repositories, which is where most of the volume is.
+
+That is a third of the low end of the target. It is enough for retrieval to do
+real work, and the honest position on `/experiments` will be the measured one:
+at this scale, here is what each ablation row buys. If the numbers show
+retrieval adding little, that is the result and it gets published.
+
+**One repository is deliberately excluded.**
+`University-Assignment--Community-Vaccination-Tracker` is a fork, and which
+lines are the owner's cannot be established from the repository. Ingesting it
+would let the assistant answer questions about code he may not have written.
+
+## 8. Interview defense
 
 `SPEC-v2-ML-OVERLAY.md` §20 lists the questions that must be answerable from this
 build. The answers get written here as the phases that produce them land. None of

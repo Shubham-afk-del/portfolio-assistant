@@ -49,6 +49,103 @@ export const FAILOVER: Record<string, Provider[]> = {
 };
 
 // ---------------------------------------------------------------------------
+// Free-tier rate limits, measured against the live APIs on 8 Oct 2026 rather
+// than read off a pricing page. These are the real constraint on this build:
+// ZERO-COST-STACK §6 predicted that the eval and ablation runs would be gated
+// by request caps, and ingestion hit the wall first.
+// ---------------------------------------------------------------------------
+
+export interface ProviderLimit {
+  /** Requests per minute. The client spaces requests to respect it. */
+  requestsPerMinute: number;
+  /** Tokens per minute, counted across requests in a rolling window. */
+  tokensPerMinute: number;
+  /** Largest single request, left under the per-minute cap for headroom. */
+  maxTokensPerRequest: number;
+}
+
+export const PROVIDER_LIMITS: Record<string, ProviderLimit> = {
+  /**
+   * Voyage with no payment method on file: 3 RPM and 10K TPM. Adding a card
+   * raises both substantially without spending anything, which is the first
+   * thing to do if ingestion time becomes annoying.
+   */
+  voyage: { requestsPerMinute: 3, tokensPerMinute: 10_000, maxTokensPerRequest: 7_000 },
+  /** Groq on_demand, openai/gpt-oss-20b: 8K TPM is the binding limit. */
+  groq: { requestsPerMinute: 30, tokensPerMinute: 8_000, maxTokensPerRequest: 4_000 },
+};
+
+// ---------------------------------------------------------------------------
+// Corpus sources. An allowlist, never a scan: what gets published is a decision
+// taken here, not a consequence of what happens to be in an account.
+// ---------------------------------------------------------------------------
+
+export interface GithubSource {
+  owner: string;
+  repo: string;
+  /** Why this repository is in the corpus. Also the blurb shown with a citation. */
+  why: string;
+}
+
+export const CORPUS_SOURCES = {
+  github: [
+    {
+      owner: "Shubham-afk-del",
+      repo: "LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-",
+      why: "Delivery-time regression. The notebook behind the case study of the same name.",
+    },
+    {
+      owner: "Shubham-afk-del",
+      repo: "EDA_Optimising_NYC_Taxis_Shubham_Kumar_Singh",
+      why: "NYC taxi exploratory analysis, including the placeholder-data correction.",
+    },
+    {
+      owner: "Shubham-afk-del",
+      repo: "Notes_App_AE2",
+      why: "Web Services coursework. Small, and the only JavaScript on the profile.",
+    },
+    // Deliberately absent: University-Assignment--Community-Vaccination-Tracker.
+    // It is a fork, and which lines are the owner's cannot be established from
+    // the repository. Ingesting it would let the assistant answer questions
+    // about code he may not have written, which is the one thing this system
+    // must never do. INTAKE §8 asks for the same thing from the other side:
+    // make the contribution explicit in its README, or un-fork it.
+  ] satisfies GithubSource[],
+
+  /** Extensions worth retrieving. Everything else in a tree is ignored. */
+  githubExtensions: [".md", ".py", ".ipynb", ".js", ".ts", ".sql", ".html", ".css"],
+
+  /** Paths that never carry signal, however they are named. */
+  githubIgnore: [
+    "node_modules/",
+    ".git/",
+    "__MACOSX/",
+    "dist/",
+    "build/",
+    "package-lock.json",
+  ],
+
+  /** A file larger than this is a dataset or a build artifact, not prose. */
+  githubMaxFileBytes: 400_000,
+
+  /**
+   * Notebooks get their own, much larger cap. A notebook is mostly base64
+   * image output, so its file size says nothing about how much prose and code
+   * it holds: the two analysis notebooks are 5.2MB and 3.3MB and carry the
+   * most substantial work in the corpus. The loader strips the images, so what
+   * actually gets embedded is a fraction of what gets downloaded.
+   */
+  notebookMaxFileBytes: 12_000_000,
+
+  /**
+   * Cell outputs are kept but truncated. The numbers in a notebook live in its
+   * stdout, so dropping outputs entirely would lose the R² values that make
+   * these repositories worth retrieving. Images are dropped.
+   */
+  notebookMaxOutputChars: 600,
+} as const;
+
+// ---------------------------------------------------------------------------
 // Retrieval. Each flag corresponds to a row in the ablation table.
 // ---------------------------------------------------------------------------
 

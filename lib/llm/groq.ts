@@ -1,4 +1,6 @@
 import { MODELS } from "@/lib/config";
+import { estimateTokens } from "@/lib/tokens";
+import { throttled, retryAfterMs } from "./throttle";
 import {
   type CompleteRequest,
   type LlmAdapter,
@@ -31,6 +33,8 @@ export const groq: LlmAdapter = {
       { role: "user", content: prompt },
     ];
 
+    const cost = estimateTokens(`${system ?? ""}\n${prompt}`) + maxTokens;
+    return throttled("groq", cost, async () => {
     const response = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
@@ -57,6 +61,7 @@ export const groq: LlmAdapter = {
         `groq ${response.status}: ${(await response.text()).slice(0, 300)}`,
         response.status,
         isRetryableStatus(response.status),
+        retryAfterMs(response),
       );
     }
 
@@ -86,5 +91,6 @@ export const groq: LlmAdapter = {
     }
 
     return content;
+    });
   },
 };
