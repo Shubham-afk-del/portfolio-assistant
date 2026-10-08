@@ -14,13 +14,17 @@ export function Identity() {
 
   return (
     <header>
-      <h1 className="text-lead font-medium tracking-tight">{profile.name}</h1>
+      <h1 className="text-headline sm:text-headline-lg font-medium tracking-tight text-balance">
+        {profile.name}
+      </h1>
 
       {headline !== undefined && (
-        <p className="font-prose mt-2 max-w-[54ch] text-prose-sm">{headline}</p>
+        <p className="font-prose text-ink mt-3 max-w-[46ch] text-lead text-pretty">
+          {headline}
+        </p>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-label">
+      <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-label">
         <span className="text-ink-muted">{profile.location}</span>
 
         {availability !== undefined && (

@@ -2,6 +2,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Identity } from "@/components/hero/Identity";
 import { Composer } from "@/components/hero/Composer";
 import { Sources } from "@/components/hero/Sources";
+import { Signals } from "@/components/hero/Signals";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
 import { Experience } from "@/components/sections/Experience";
@@ -46,6 +47,7 @@ export default function Page() {
           <div className="min-w-0">
             <Identity />
             <Composer />
+            <Signals />
           </div>
           <Sources />
         </div>
