@@ -18,8 +18,14 @@ export default function Page() {
   const linkedin = filled(profile.contact.linkedin);
 
   return (
-    <div className="flex h-[100dvh] flex-col">
-      <header className="border-rule shrink-0 border-b">
+    <div className="flex h-[100dvh] flex-col p-0 sm:p-5 lg:p-8">
+      {/* The field the glass blurs against. Fixed, behind everything, and
+        * deliberately saturated: nothing readable sits directly on it. */}
+      <div aria-hidden className="field" />
+
+      <div className="glass animate-settle mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col overflow-hidden sm:rounded-none">
+
+        <header className="glass-divider shrink-0 border-b">
         <div className="mx-auto w-full max-w-3xl px-5 py-5 sm:px-8 sm:py-6">
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
             <h1 className="text-ink text-lead font-medium tracking-tight">
@@ -70,14 +76,15 @@ export default function Page() {
         </div>
       </header>
 
-      <Assistant />
+        <Assistant />
 
-      <footer className="border-rule shrink-0 border-t">
+        <footer className="glass-divider shrink-0 border-t">
         <p className="text-ink-muted mx-auto w-full max-w-3xl px-5 py-3 text-label sm:px-8">
           An AI assistant, and it may be imprecise. The résumé is the
           authoritative record, and every answer shows the sources behind it.
         </p>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

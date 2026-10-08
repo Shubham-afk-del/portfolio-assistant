@@ -23,13 +23,13 @@
 
 :root {
   --ink: #14171c; /* 16.61:1 on paper */
-  --ink-muted: #55606e; /*  5.91:1 on paper */
+  --ink-muted: #4c5765; /*  7.19:1 on paper, 4.61:1 on the darkest point of the field */
   --paper: #f5f6f8;
   --sunken: #e8eaee;
   --rule: #bfc5ce; /*  1.61:1, decorative separators only */
   --rule-strong: #7f8894; /*  3.32:1, borders of interactive controls */
   --evidence: #1f3d7a; /*  9.68:1 on paper, 8.69:1 on sunken */
-  --caution: #8a5300; /*  5.85:1 on paper */
+  --caution: #7c4a00; /*  6.85:1 on paper, 4.64:1 on the darkest point of the field */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -169,5 +169,144 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Glass surfaces.
+ *
+ * The ui-ux-pro-max skill rates glassmorphism's accessibility risk as
+ * conditional: it requires verified 4.5:1 text contrast and, in its own
+ * checklist, a "vibrant background verified". Those two pull against each
+ * other, and the resolution is architectural rather than cosmetic. Nothing
+ * readable sits on the field. Every piece of text sits on a glass panel, which
+ * frees the field to be saturated enough for the blur to have something to do.
+ *
+ * Light and dark tint in opposite directions. A white panel over a saturated
+ * field in dark mode lifts the surface until muted text fails (measured at
+ * 4.11:1), so dark mode uses a black-tinted panel instead. Every ratio below
+ * is computed against the composite at the strongest point of the field.
+ * ------------------------------------------------------------------------- */
+
+:root {
+  --glass-blur: 20px;
+  --glass: rgb(255 255 255 / 0.72);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --glass-shadow:
+    0 1px 0 rgb(255 255 255 / 0.6) inset,
+    0 24px 60px -24px rgb(20 23 28 / 0.28);
+  /* Control borders on glass: the panel is lighter than `paper`, so
+   * `rule-strong` loses contrast against it. 3.27:1 on the light composite. */
+  --rule-on-glass: #79818d;
+  /* The field. Saturated, because nothing readable sits on it. */
+  --field-a: rgb(31 61 122 / 0.35);
+  --field-b: rgb(176 106 0 / 0.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --glass: rgb(0 0 0 / 0.45);
+    --glass-border: rgb(255 255 255 / 0.12);
+    --glass-shadow:
+      0 1px 0 rgb(255 255 255 / 0.07) inset,
+      0 24px 60px -24px rgb(0 0 0 / 0.6);
+    --rule-on-glass: #8a94a3; /* 5.05:1 on the dark composite */
+    --field-a: rgb(143 176 255 / 0.30);
+    --field-b: rgb(224 169 59 / 0.10);
+  }
+}
+
+@theme inline {
+  --color-glass: var(--glass);
+  --color-glass-border: var(--glass-border);
+  --color-rule-on-glass: var(--rule-on-glass);
+}
+
+@layer components {
+  .glass {
+    background-color: var(--glass);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* An inner divider on glass: lighter than `rule`, which disappears on it. */
+  .glass-divider {
+    border-color: color-mix(in srgb, var(--rule-on-glass) 40%, transparent);
+  }
+
+  .field {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(55rem 38rem at 8% -12%, var(--field-a), transparent 62%),
+      radial-gradient(42rem 32rem at 98% 10%, var(--field-b), transparent 58%),
+      radial-gradient(50rem 40rem at 60% 115%, var(--field-a), transparent 60%),
+      var(--paper);
+  }
+}
+
+@layer utilities {
+  /* Durations differ by distance and purpose rather than one value copied
+   * everywhere; entry decelerates, per the skill's easing guidance. */
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.995);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-rise {
+    animation: rise 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-fade {
+    animation: fade 180ms ease-out both;
+  }
+
+  /* The console arriving: furthest distance, so the longest duration. */
+  .animate-settle {
+    animation: settle 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes caret {
+    0%,
+    45% {
+      opacity: 1;
+    }
+    55%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .animate-caret {
+    animation: caret 1.1s steps(1, end) infinite;
   }
 }
