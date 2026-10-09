@@ -65,6 +65,43 @@ export async function POST(request: Request): Promise<Response> {
       const hits = denseSearch(index, queryVector, RETRIEVAL_CONFIG.finalTopK);
       const searchMs = Date.now() - searchedAt;
 
+      /**
+       * The trace is streamed as it happens, stage by stage, with the real
+       * measured timings. SPEC-v2 §13 asks for a trace panel; making it the
+       * loading state means the wait is spent showing the work rather than
+       * spinning, and every number in it is measured rather than staged.
+       */
+      writer.write({
+        type: "data-trace",
+        data: {
+          stages: [
+            { id: "embed", label: "embedding the question", ms: embedMs },
+            { id: "search", label: `searching ${String(index.chunks.length)} chunks`, ms: searchMs },
+            { id: "rank", label: `ranking ${String(hits.length)} passages`, ms: 0 },
+          ],
+          chunks: index.chunks.length,
+          documents: index.documents.length,
+        },
+      });
+
+      writer.write({
+        type: "data-sources",
+        data: {
+          hits: hits.map((hit) => ({
+            id: hit.chunkId,
+            title: hit.title,
+            docType: hit.docType,
+            score: hit.score,
+            path: hit.path,
+            url: hit.path.startsWith("github:")
+              ? `https://github.com/${hit.path.slice("github:".length)}`
+              : undefined,
+            snippet: hit.content.replace(/\s+/g, " ").slice(0, 180),
+          })),
+          threshold: RETRIEVAL_CONFIG.relevanceThreshold,
+        },
+      });
+
       const id = "answer";
       writer.write({ type: "text-start", id });
 
@@ -85,20 +122,9 @@ export async function POST(request: Request): Promise<Response> {
 
       for (const word of body.split(" ")) {
         writer.write({ type: "text-delta", id, delta: `${word} ` });
-        await new Promise((resolve) => setTimeout(resolve, 12));
+        await new Promise((resolve) => setTimeout(resolve, 18));
       }
       writer.write({ type: "text-end", id });
-
-      for (const hit of hits) {
-        writer.write({
-          type: "source-url",
-          sourceId: hit.chunkId,
-          url: hit.path.startsWith("github:")
-            ? `https://github.com/${hit.path.slice("github:".length)}`
-            : `#${hit.path}`,
-          title: `${hit.title}  ·  ${hit.score.toFixed(3)}`,
-        });
-      }
     },
   });
 
