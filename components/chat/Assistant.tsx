@@ -2,12 +2,12 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
+import type { UIMessage } from "ai";
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { Message, MessageContent } from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputBody,
@@ -17,7 +17,8 @@ import {
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion } from "@/components/ai-elements/suggestion";
-import { Source, Sources, SourcesContent, SourcesTrigger } from "@/components/ai-elements/sources";
+import { RetrievalTrace, type TracePayload } from "./RetrievalTrace";
+import { SourceRail, type SourcesPayload } from "./SourceRail";
 
 /**
  * The assistant. Everything visible on this page is this, by design: the
@@ -29,6 +30,15 @@ import { Source, Sources, SourcesContent, SourcesTrigger } from "@/components/ai
  * one is a question answerable from a document already in the index, so none
  * of them is a promise the retrieval cannot keep.
  */
+/**
+ * The custom parts this route streams. Typing them is what lets the component
+ * narrow `part.type === "data-trace"` to a payload instead of casting.
+ */
+type AssistantMessage = UIMessage<
+  unknown,
+  { trace: TracePayload; sources: SourcesPayload }
+>;
+
 const SUGGESTIONS = [
   "What has he actually shipped end to end?",
   "How strong is he on PyTorch, really?",
@@ -79,7 +89,8 @@ function useChromeInsets(bottomRef: React.RefObject<HTMLDivElement | null>): {
 }
 
 export function Assistant() {
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat<AssistantMessage>();
+  const lastId = messages[messages.length - 1]?.id;
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const insets = useChromeInsets(bottomRef);
   const busy = status === "submitted" || status === "streaming";
@@ -108,47 +119,60 @@ export function Assistant() {
             </p>
           ) : (
             messages.map((message) => {
-              const sources = message.parts.filter(
-                (part) => part.type === "source-url",
+              const trace = message.parts.find((part) => part.type === "data-trace");
+              const sources = message.parts.find(
+                (part) => part.type === "data-sources",
               );
+              const text = message.parts
+                .filter((part) => part.type === "text")
+                .map((part) => part.text)
+                .join("");
+              const streaming =
+                busy && message.role === "assistant" && message.id === lastId;
+
+              if (message.role === "user") {
+                return (
+                  <div key={message.id} className="animate-rise flex justify-end">
+                    <p className="bg-sunken/70 text-ink border-rule-on-glass/30 max-w-[85%] border px-4 py-2.5 text-ui">
+                      {text}
+                    </p>
+                  </div>
+                );
+              }
 
               return (
-                <div key={message.id} className="animate-rise space-y-3">
-                  {sources.length > 0 && (
-                    <Sources>
-                      <SourcesTrigger count={sources.length} />
-                      <SourcesContent>
-                        {sources.map((source) => (
-                          <Source
-                            key={source.sourceId}
-                            href={source.url}
-                            title={source.title ?? source.url}
-                          />
-                        ))}
-                      </SourcesContent>
-                    </Sources>
+                <div key={message.id} className="animate-rise space-y-5">
+                  {/* What it did, while it is doing it. */}
+                  {trace !== undefined && (
+                    <RetrievalTrace
+                      trace={trace.data}
+                      settled={!streaming}
+                    />
                   )}
 
-                  <Message from={message.role}>
-                    <MessageContent>
-                      {message.parts.map((part, index) =>
-                        part.type === "text" ? (
-                          <p
-                            key={`${message.id}-${String(index)}`}
-                            className="font-prose text-ink text-prose-sm"
-                          >
-                            {part.text}
-                            {busy && message.role === "assistant" && (
-                              <span
-                                aria-hidden
-                                className="bg-evidence animate-caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.12em]"
-                              />
-                            )}
-                          </p>
-                        ) : null,
+                  {/* What it found, with the real scores. */}
+                  {sources !== undefined && (
+                    <div className="border-rule-on-glass/30 border-l-2 pl-4">
+                      <SourceRail sources={sources.data} />
+                    </div>
+                  )}
+
+                  {/* What it says. */}
+                  {text !== "" && (
+                    <p
+                      className={`font-prose text-ink text-prose-sm ${
+                        streaming ? "" : "animate-compose"
+                      }`}
+                    >
+                      {text}
+                      {streaming && (
+                        <span
+                          aria-hidden
+                          className="bg-evidence animate-caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.12em]"
+                        />
                       )}
-                    </MessageContent>
-                  </Message>
+                    </p>
+                  )}
                 </div>
               );
             })
@@ -182,8 +206,14 @@ export function Assistant() {
             onSubmit={(message: PromptInputMessage) => {
               ask(message.text);
             }}
-            className="lift border-rule-on-glass divide-rule focus-within:border-evidence rounded-none border bg-transparent shadow-none"
+            className="lift border-rule-on-glass divide-rule focus-within:border-evidence group/input relative rounded-none border bg-transparent shadow-none"
           >
+            {/* The evidence rail. Grows on focus, so the field responds the
+              * moment it is addressed rather than only on submit. */}
+            <span
+              aria-hidden
+              className="bg-evidence absolute inset-y-0 left-0 w-0.5 origin-center scale-y-0 transition-transform duration-300 ease-out group-focus-within/input:scale-y-100"
+            />
             <PromptInputBody>
               <PromptInputTextarea
                 placeholder="Ask a question…"
