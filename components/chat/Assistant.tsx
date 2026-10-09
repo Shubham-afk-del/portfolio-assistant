@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import {
   Conversation,
@@ -36,8 +37,51 @@ const SUGGESTIONS = [
   "What did he automate at Capgemini?",
 ] as const;
 
+/**
+ * Measures the two glass overlays and pads the transcript to clear them.
+ *
+ * The header and the composer float above the scroll area so that content
+ * passes under them, which is the only thing that makes the blur visible.
+ * That leaves the transcript needing to know their heights, and they are not
+ * fixed: the headline rewraps, the suggestion chips wrap to five rows on a
+ * phone, and the composer grows as a question is typed. A hardcoded padding
+ * was 23px short at the top and 73px at the bottom on the first viewport I
+ * measured, which hid the first line of the answer behind the header.
+ */
+function useChromeInsets(bottomRef: React.RefObject<HTMLDivElement | null>): {
+  top: number;
+  bottom: number;
+} {
+  const [insets, setInsets] = useState({ top: 176, bottom: 240 });
+
+  useLayoutEffect(() => {
+    const top = document.querySelector<HTMLElement>('[data-chrome="top"]');
+    const bottom = bottomRef.current;
+    if (top === null || bottom === null) return;
+
+    const measure = (): void => {
+      setInsets({
+        top: Math.ceil(top.getBoundingClientRect().height),
+        bottom: Math.ceil(bottom.getBoundingClientRect().height),
+      });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(top);
+    observer.observe(bottom);
+    return () => {
+      observer.disconnect();
+    };
+  }, [bottomRef]);
+
+  return insets;
+}
+
 export function Assistant() {
   const { messages, sendMessage, status } = useChat();
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const insets = useChromeInsets(bottomRef);
   const busy = status === "submitted" || status === "streaming";
   const empty = messages.length === 0;
 
@@ -47,9 +91,15 @@ export function Assistant() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <Conversation className="min-h-0 flex-1">
-        <ConversationContent className="mx-auto w-full max-w-3xl px-5 pt-2 pb-6 sm:px-8">
+    <div className="absolute inset-0">
+      <Conversation className="h-full">
+        <ConversationContent
+          className="mx-auto w-full max-w-3xl px-5 sm:px-8"
+          style={{
+            paddingTop: `${String(insets.top + 16)}px`,
+            paddingBottom: `${String(insets.bottom + 24)}px`,
+          }}
+        >
           {empty ? (
             <p className="text-ink-muted max-w-[52ch] text-label">
               Ask anything about his engineering work. Answers are retrieved from
@@ -107,7 +157,10 @@ export function Assistant() {
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="glass-divider border-t">
+      <div
+        ref={bottomRef}
+        className="glass glass-divider absolute inset-x-0 bottom-0 z-20 border-x-0 border-b-0 border-t shadow-none"
+      >
         <div className="mx-auto w-full max-w-3xl px-5 py-4 sm:px-8">
           {empty && (
             <div
@@ -119,7 +172,7 @@ export function Assistant() {
                   key={suggestion}
                   suggestion={suggestion}
                   onClick={ask}
-                  className="border-rule-on-glass text-ink-muted hover:text-ink hover:border-evidence rounded-none border bg-transparent transition-colors duration-150"
+                  className="lift border-rule-on-glass text-ink-muted hover:text-ink hover:border-evidence rounded-none border bg-transparent"
                 />
               ))}
             </div>
@@ -129,7 +182,7 @@ export function Assistant() {
             onSubmit={(message: PromptInputMessage) => {
               ask(message.text);
             }}
-            className="border-rule-on-glass divide-rule rounded-none border bg-transparent shadow-none"
+            className="lift border-rule-on-glass divide-rule focus-within:border-evidence rounded-none border bg-transparent shadow-none"
           >
             <PromptInputBody>
               <PromptInputTextarea
@@ -148,6 +201,11 @@ export function Assistant() {
               />
             </PromptInputFooter>
           </PromptInput>
+
+          <p className="text-ink-muted mt-3 text-label">
+            An AI assistant, and it may be imprecise. The résumé is the
+            authoritative record, and every answer shows the sources behind it.
+          </p>
         </div>
       </div>
     </div>

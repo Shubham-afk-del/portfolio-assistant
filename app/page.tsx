@@ -20,12 +20,24 @@ export default function Page() {
   return (
     <div className="flex h-[100dvh] flex-col p-0 sm:p-5 lg:p-8">
       {/* The field the glass blurs against. Fixed, behind everything, and
-        * deliberately saturated: nothing readable sits directly on it. */}
-      <div aria-hidden className="field" />
+        * deliberately saturated: nothing readable sits directly on it. The
+        * light inside it drifts, because glass with nothing moving under it
+        * reads as a flat panel. */}
+      <div aria-hidden className="field">
+        <span className="field-orb" />
+      </div>
 
-      <div className="glass animate-settle mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col overflow-hidden sm:rounded-none">
-
-        <header className="glass-divider shrink-0 border-b">
+      {/*
+        * The console. The header and the composer are overlays rather than
+        * flex rows, so the transcript scrolls underneath them: that is where
+        * the blur is actually visible, and it is the only reason to use glass
+        * here at all.
+        */}
+      <div className="glass animate-settle relative mx-auto h-full w-full max-w-3xl overflow-hidden">
+        <header
+          data-chrome="top"
+          className="glass glass-divider absolute inset-x-0 top-0 z-20 border-x-0 border-t-0 border-b shadow-none"
+        >
         <div className="mx-auto w-full max-w-3xl px-5 py-5 sm:px-8 sm:py-6">
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
             <h1 className="text-ink text-lead font-medium tracking-tight">
@@ -78,12 +90,6 @@ export default function Page() {
 
         <Assistant />
 
-        <footer className="glass-divider shrink-0 border-t">
-        <p className="text-ink-muted mx-auto w-full max-w-3xl px-5 py-3 text-label sm:px-8">
-          An AI assistant, and it may be imprecise. The résumé is the
-          authoritative record, and every answer shows the sources behind it.
-        </p>
-        </footer>
       </div>
     </div>
   );
