@@ -1,0 +1,269 @@
+/*
+ * The galaxy's own paint. Its palette, its stage and its swatches are the
+ * knowledge map's (KnowledgeMap.module.css), so a star and its dot are the
+ * same colour in both themes. This file holds only what the WebGL canvas
+ * adds: which of the two figures shows, the stage's size, and the HTML that
+ * floats over the canvas: group labels, the pointer ring, the tooltip, the
+ * drag hint and the legend's chips.
+ */
+
+.root {
+  position: relative;
+}
+
+/* Which figure shows is decided here, before any script runs, so the
+ * server's HTML already has the right layout and nothing shifts when the
+ * page hydrates. The query is the one galaxyAllowed() asks, word for word;
+ * a browser that does not know a feature in it fails it in both places. The
+ * script can still send a galaxy-capable browser back to the 2D map (no
+ * WebGL2, Save-Data, a lost GPU context) by setting data-flat on the root. */
+.galaxy {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  :global(:root:not([data-motion="paused"])) .root:not([data-flat]) > .flat {
+    display: none;
+  }
+
+  :global(:root:not([data-motion="paused"])) .root:not([data-flat]) > .galaxy {
+    display: block;
+  }
+}
+
+/* Sized to the screen rather than to the data's aspect: with the welcome
+ * screen at the top, the stage and the legend inside it end just above the
+ * floating composer at 1280x800 and 1440x900, and the explanation below may
+ * scroll. */
+.stage {
+  height: clamp(15rem, calc(100svh - 32rem), 32rem);
+}
+
+/* The canvas is clipped to the stage's rounded well; the tooltip is not, so
+ * it can reach past the edge of the stage the way the 2D map's does. */
+.clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+ * HTML over the canvas. Labels, the ring and the tooltip are placed by the
+ * render loop with a transform, only while something moves.
+ * ------------------------------------------------------------------------- */
+
+.label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  color: var(--ink-muted);
+  /* The 2D map's label halo, which SVG draws as a stroke behind the text. */
+  text-shadow:
+    0 0 2px var(--km-halo),
+    0 0 3px var(--km-halo),
+    0 0 6px var(--km-halo);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* A label sits beside its group, not on it, so a dot in the group's colour
+ * says which cloud of stars it names. */
+.labelDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: var(--c);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--c) 55%, transparent);
+}
+
+/* The 2D map's cursor ring, in the evidence colour. It is also where the
+ * comet launches from when a star is asked about, so it is hidden with
+ * opacity, never display, and always has a box to measure. */
+.ring {
+  position: absolute;
+  top: -8.5px;
+  left: -8.5px;
+  z-index: 1;
+  width: 17px;
+  height: 17px;
+  border: 2px solid var(--evidence);
+  border-radius: 9999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms var(--ease-out);
+}
+
+.ring[data-on] {
+  opacity: 1;
+}
+
+.tipAnchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Anchored at the star and shifted left by the star's own share of the
+ * stage's width, as in the 2D map, so it stays inside near either edge. */
+.tip {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  width: max-content;
+  max-width: 17rem;
+  transform: translateX(calc(var(--ax, 0.5) * -100%));
+  animation: tip-in 180ms var(--ease-out) backwards;
+}
+
+.tipAnchor[data-below] .tip {
+  top: 14px;
+  bottom: auto;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* "Drag to turn", in the top corner, clear of the legend along the bottom;
+ * shown once the galaxy has settled and gone for good after the first drag.
+ * The label layout keeps out of its box. */
+.hint {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-shadow:
+    0 0 3px var(--km-halo),
+    0 0 6px var(--km-halo);
+  opacity: 0;
+  translate: 0 -4px;
+  pointer-events: none;
+  transition:
+    opacity 420ms var(--ease-out),
+    translate 420ms var(--ease-out);
+}
+
+.hint[data-on] {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* The legend, as chips inside the stage's frame, so the key is always in
+ * view with the stars it explains. Solid rather than frosted: the canvas
+ * behind them changes every frame, and a backdrop blur would be redone
+ * every frame with it. The camera frames the galaxy in the space above. */
+.legend {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 7px;
+  border: 1px solid var(--km-stage-edge);
+  border-radius: 9999px;
+  background-color: var(--km-halo);
+  color: var(--ink);
+  font-size: 11.5px;
+  line-height: 14px;
+  white-space: nowrap;
+  pointer-events: auto;
+  transition:
+    border-color 200ms var(--ease-out),
+    background-color 200ms var(--ease-out);
+}
+
+.chip[data-on] {
+  border-color: color-mix(in srgb, var(--c) 65%, transparent);
+  background-color: color-mix(in srgb, var(--c) 16%, var(--km-halo));
+}
+
+.chipDot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: var(--c);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 20%, transparent);
+}
+
+.chipCount {
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+/* ---------------------------------------------------------------------------
+ * The interaction surface: one tab stop over the whole stage, like the 2D
+ * map's, and the surface the pointer drags and hovers on.
+ * ------------------------------------------------------------------------- */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  cursor: grab;
+  /* Vertical swipes still scroll the page; sideways drags turn the galaxy. */
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.overlay[data-pointing] {
+  cursor: pointer;
+}
+
+.overlay[data-dragging] {
+  cursor: grabbing;
+}
+
+.overlay:focus-visible {
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip,
+  .ring,
+  .hint,
+  .chip {
+    animation: none;
+    transition: none;
+  }
+}

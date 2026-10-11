@@ -1,0 +1,62 @@
+/* The pointer halo (Cursor.tsx). Above the panels and below nothing that
+ * takes input: it never takes the pointer itself. */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.halo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+/* Sized from custom properties, so a snap to a control's shape and the way
+ * back to a dot are both one transition. Width and height animate here on
+ * purpose: the ring is a lone fixed element, so resizing it lays out nothing
+ * else. */
+.ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--w, 30px);
+  height: var(--h, 30px);
+  translate: -50% -50%;
+  border-radius: var(--r, 999px);
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  transition:
+    width 420ms var(--ease-spring),
+    height 420ms var(--ease-spring),
+    border-radius 420ms var(--ease-spring),
+    scale 380ms var(--ease-spring),
+    opacity 240ms var(--ease-out),
+    background-color 220ms var(--ease-out),
+    border-color 220ms var(--ease-out);
+}
+
+.halo[data-mode="hidden"] .ring {
+  opacity: 0;
+  scale: 0.5;
+}
+
+.halo[data-mode="ring"] .ring {
+  --w: 48px;
+  --h: 48px;
+  border-color: color-mix(in srgb, var(--evidence) 55%, transparent);
+  background-color: color-mix(in srgb, var(--brand-a) 9%, transparent);
+}
+
+.halo[data-mode="snap"] .ring {
+  border-color: color-mix(in srgb, var(--evidence) 60%, transparent);
+  background-color: color-mix(in srgb, var(--brand-a) 8%, transparent);
+  box-shadow: 0 0 22px -6px var(--brand-glow);
+}
+
+/* A press squeezes the halo, the same beat as the control's own press. */
+.halo[data-pressed] .ring {
+  scale: 0.9;
+  transition-duration: 120ms;
+}

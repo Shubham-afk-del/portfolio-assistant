@@ -1,0 +1,176 @@
+/*
+ * Liquid glass. Every browser gets this frosted base, and it has to stand on
+ * its own, because Safari and Firefox never get more: a strong tint, a blur,
+ * a specular rim and a highlight across the top. Chromium additionally bends
+ * what is behind it, which LiquidGlass.tsx switches on with an inline
+ * backdrop-filter that replaces the one below.
+ *
+ * The rules sit in the components layer, like the panel classes in
+ * app/globals.css, so a Tailwind utility passed in className still wins over
+ * them. Unlayered module rules would beat every utility.
+ */
+
+@layer components {
+  .glass {
+    position: relative;
+    isolation: isolate;
+    /* Invisible here, but forced-colours mode draws a transparent border as a
+     * real one, which is the only edge the glass keeps there. */
+    border: 1px solid transparent;
+    background-color: var(--glass-strong);
+    background-image: linear-gradient(to bottom, var(--lg-sheen), transparent 58%);
+    -webkit-backdrop-filter: blur(18px) saturate(1.6);
+    backdrop-filter: blur(18px) saturate(1.6);
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-highlight),
+      inset 0 -1px 0 0 var(--lg-floor),
+      0 0 0 0.5px var(--glass-edge),
+      0 1px 2px 0 var(--lg-contact),
+      0 16px 36px -18px var(--glass-shadow),
+      inset 0 0 14px 0 var(--lg-inner),
+      var(--lg-glow, 0 0 #0000);
+    transition: scale 420ms var(--ease-spring);
+
+    --lg-sheen: light-dark(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.05));
+    /* Light caught inside the glass and thrown back off its inner walls. */
+    --lg-inner: light-dark(rgb(255 255 255 / 0.32), rgb(255 255 255 / 0.05));
+    --lg-floor: light-dark(rgb(15 20 28 / 0.04), rgb(0 0 0 / 0.28));
+    --lg-contact: light-dark(rgb(23 32 64 / 0.08), rgb(0 0 0 / 0.4));
+  }
+
+  /*
+   * The specular rim: a 1px ring cut out of a gradient with mask-composite,
+   * so it can be brighter where light would catch the top-left of the bevel
+   * and faint where it leaves at the bottom-right. It is a span rather than
+   * a pseudo element because LiquidGlass also measures it to size the
+   * refraction map, and it covers the transparent border so the ring sits on
+   * the visible edge.
+   */
+  .rim {
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      160deg,
+      var(--lg-rim-hi) 0%,
+      var(--lg-rim-mid) 18%,
+      transparent 44%,
+      transparent 62%,
+      var(--lg-rim-lo) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+
+    --lg-rim-hi: light-dark(rgb(255 255 255 / 1), rgb(255 255 255 / 0.46));
+    --lg-rim-mid: light-dark(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.14));
+    --lg-rim-lo: light-dark(rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.13));
+  }
+
+  /*
+   * Refracting, the tint is split. Under a full --glass-strong only a quarter
+   * of the bent backdrop shows, and the bend is lost. So the glass itself
+   * drops to 45% of that tint (alpha 0.35 light, 0.32 dark), clear enough at
+   * the rim to read as a lens, the way Apple's controls do, and a feathered
+   * core at 60% behind the content brings the middle to 0.65 light and 0.62
+   * dark. That is never below the panels' own tint (0.60 and 0.55), against
+   * which the text contrast was measured, and this glass floats over a panel
+   * besides. z-index -1 paints the core above the glass's own background but
+   * below its content.
+   */
+  .glass[data-refract] {
+    background-color: color-mix(in srgb, var(--glass-strong) 45%, transparent);
+  }
+
+  .core {
+    display: none;
+  }
+
+  .glass[data-refract] > .core {
+    position: absolute;
+    inset: var(--lg-core-inset, 8px);
+    z-index: -1;
+    display: block;
+    border-radius: inherit;
+    background-color: color-mix(in srgb, var(--glass-strong) 60%, transparent);
+    box-shadow: 0 0 6px 3px color-mix(in srgb, var(--glass-strong) 60%, transparent);
+    pointer-events: none;
+  }
+
+  /*
+   * The pointer light: a soft specular spot, faint at the top left at rest
+   * and following the pointer while it is over the glass (usePointerLight
+   * sets --lg-x, --lg-y and data-lit). Under the content, over the core.
+   */
+  .light {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(
+      circle at var(--lg-x, 24%) var(--lg-y, 0%),
+      var(--lg-light) 0,
+      transparent var(--lg-light-size, 72px)
+    );
+    opacity: 0.55;
+    transition: opacity 320ms var(--ease-out);
+    pointer-events: none;
+
+    --lg-light: light-dark(rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.13));
+  }
+
+  .glass[data-lit] > .light {
+    opacity: 1;
+  }
+
+  /* Pressed, the glass gives a little, the way Apple's controls flex under
+   * a finger, and springs back on release. */
+  button.glass:active {
+    scale: 0.96;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button.glass:active {
+      scale: none;
+    }
+  }
+
+  /* The filter has to be rendered to be referenced: Chromium drops filters
+   * inside display:none, so the SVG is shrunk to nothing instead. */
+  .defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Asked for less transparency: no refraction (see canRefract) and a
+   * denser tint, so the glass reads as a surface rather than a window. */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass {
+      background-color: var(--glass-input);
+    }
+
+    .light {
+      display: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .glass {
+      border-color: var(--rule-on-glass);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .glass {
+      border-color: CanvasText;
+    }
+  }
+}
