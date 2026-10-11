@@ -1,27 +1,47 @@
 import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
-import { embed } from "@/lib/llm";
-import { loadIndex, denseSearch } from "@/lib/retrieval/index-store";
-import { GUARDS, RETRIEVAL_CONFIG } from "@/lib/config";
+import { GUARDS } from "@/lib/config";
+import { streamAnswer } from "@/lib/generation/answer";
+import { classifyScope } from "@/lib/generation/scope";
+import { questionLimiter, visitorOf } from "@/lib/guards/rate-limit";
+import type { ChatTurn } from "@/lib/llm";
+import { getProfile } from "@/lib/profile";
+import { retrieve } from "@/lib/retrieval/pipeline";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 /**
- * Retrieval only. No generation yet.
+ * Retrieval, then a generated answer grounded in what it found.
  *
- * This route proves the whole path end to end: a question arrives, it is
- * embedded, searched against the committed index, and the real sources stream
- * back to the client. What it deliberately does not do is write prose about
- * them, because generation without the guardrails in SPEC-v2 §12 and the
- * faithfulness checks in §14 is exactly the thing this project exists not to
- * ship. The answer text says so rather than implying a model is thinking.
+ * A question goes through the same retrieval pipeline the search CLI and the
+ * evals use (lib/retrieval/pipeline.ts); the trace and the sources stream to
+ * the client first, then the answer, written by lib/generation/answer.ts from
+ * the profile and the passages that passed the relevance gate. Beside
+ * retrieval, a scope check decides whether the question is about him at all
+ * (lib/generation/scope.ts); it is faster than retrieval, so it adds no wait.
  *
- * Phase 3 replaces the placeholder paragraph with a generated, cited answer.
+ * The answer evals (evals/answers.ts) are the gate this route ships behind:
+ * on 11 Oct 2026, 74 of 77 golden questions passed every check, faithfulness
+ * was 1.000 with no unsupported claim, and every injection was resisted. The
+ * three misses were the judge's labels, not wrong answers.
  */
 
 interface IncomingMessage {
   role: string;
   parts?: { type: string; text?: string }[];
+}
+
+/**
+ * A browsable GitHub link for an ingested file. Index paths read
+ * "github:owner/repo/path/to/file", and GitHub serves files under
+ * /blob/<ref>/; HEAD resolves to the default branch, so this does not need
+ * to know whether a repository uses main or master.
+ */
+function githubUrl(path: string): string | undefined {
+  if (!path.startsWith("github:")) return undefined;
+  const [owner, repo, ...file] = path.slice("github:".length).split("/");
+  if (owner === undefined || repo === undefined || file.length === 0) return undefined;
+  return `https://github.com/${owner}/${repo}/blob/HEAD/${file.map(encodeURIComponent).join("/")}`;
 }
 
 function lastUserText(messages: IncomingMessage[]): string {
@@ -37,7 +57,48 @@ function lastUserText(messages: IncomingMessage[]): string {
   return "";
 }
 
+/** Every turn before the question being answered, as plain text. */
+function historyBefore(messages: IncomingMessage[]): ChatTurn[] {
+  const lastUser = messages.map((message) => message.role).lastIndexOf("user");
+  return messages.slice(0, Math.max(lastUser, 0)).flatMap((message) => {
+    if (message.role !== "user" && message.role !== "assistant") return [];
+    const text = (message.parts ?? [])
+      .filter((part) => part.type === "text")
+      .map((part) => part.text ?? "")
+      .join(" ")
+      .trim();
+    return text === "" ? [] : [{ role: message.role, text }];
+  });
+}
+
+const UNAVAILABLE =
+  "The answer service didn't respond just now, so there's no written answer this time. " +
+  "The sources below are what it would have drawn on, and the résumé is the authoritative record.";
+
+const CUT_OFF = " … The answer was cut off here; the sources below are what it was drawing on.";
+
+/** A reply written by the route itself, streamed like an answer so the chat shows it as one. */
+function notice(text: string): Response {
+  const stream = createUIMessageStream({
+    execute: ({ writer }) => {
+      const id = "notice";
+      writer.write({ type: "text-start", id });
+      writer.write({ type: "text-delta", id, delta: text });
+      writer.write({ type: "text-end", id });
+    },
+  });
+  return createUIMessageStreamResponse({ stream });
+}
+
+function minutes(seconds: number): string {
+  const whole = Math.max(1, Math.ceil(seconds / 60));
+  return `${String(whole)} minute${whole === 1 ? "" : "s"}`;
+}
+
 export async function POST(request: Request): Promise<Response> {
+  if (Number(request.headers.get("content-length") ?? 0) > GUARDS.maxRequestBytes) {
+    return new Response("Request too large.", { status: 413 });
+  }
   const body = (await request.json()) as { messages?: IncomingMessage[] };
   const question = lastUserText(body.messages ?? []);
 
@@ -51,78 +112,74 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  // Checked after the question is known to be valid, so a malformed request
+  // does not spend a visitor's allowance. Refusals come back as a reply in
+  // the chat, not an error, so the visitor reads why and what to do instead.
+  const verdict = questionLimiter.admit(visitorOf(request));
+  if (!verdict.allowed) {
+    return notice(
+      verdict.reason === "visitor"
+        ? `That's a lot of questions in a few minutes, so I'm taking a short pause. Try again in about ${minutes(verdict.retryAfterSeconds)}. His résumé, under Download résumé, has the full record in the meantime.`
+        : "I've answered as many questions as I can for today. Please come back tomorrow; his résumé, under Download résumé, has the full record in the meantime.",
+    );
+  }
+
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
-      const startedAt = Date.now();
-      const index = loadIndex();
-      const { vectors } = await embed({ input: [question], inputType: "query" });
-      const embedMs = Date.now() - startedAt;
-
-      const queryVector = vectors[0];
-      if (queryVector === undefined) throw new Error("no embedding returned");
-
-      const searchedAt = Date.now();
-      const hits = denseSearch(index, queryVector, RETRIEVAL_CONFIG.finalTopK);
-      const searchMs = Date.now() - searchedAt;
+      const history = historyBefore(body.messages ?? []);
+      const [result, scope] = await Promise.all([
+        retrieve(question, { interactive: true }),
+        classifyScope(getProfile().preferred_name, question, history),
+      ]);
+      for (const reason of result.degraded) console.warn(`retrieval degraded: ${reason}`);
 
       /**
-       * The trace is streamed as it happens, stage by stage, with the real
-       * measured timings. SPEC-v2 §13 asks for a trace panel; making it the
-       * loading state means the wait is spent showing the work rather than
-       * spinning, and every number in it is measured rather than staged.
+       * Every stage the pipeline ran, in order, with its measured time.
+       * SPEC-v2 §13 asks for a trace panel; making it the loading state means
+       * the wait is spent showing the work rather than spinning, and every
+       * number in it is measured rather than staged.
        */
       writer.write({
         type: "data-trace",
         data: {
-          stages: [
-            { id: "embed", label: "embedding the question", ms: embedMs },
-            { id: "search", label: `searching ${String(index.chunks.length)} chunks`, ms: searchMs },
-            { id: "rank", label: `ranking ${String(hits.length)} passages`, ms: 0 },
-          ],
-          chunks: index.chunks.length,
-          documents: index.documents.length,
+          stages: result.stages,
+          chunks: result.corpus.chunks,
+          documents: result.corpus.documents,
         },
       });
 
       writer.write({
         type: "data-sources",
         data: {
-          hits: hits.map((hit) => ({
+          // A passage the reranker graded 0 is unrelated to the question, and
+          // listing it under an answer, or under "not on file", only adds noise.
+          hits: result.hits.filter((hit) => hit.relevance !== 0).map((hit) => ({
             id: hit.chunkId,
             title: hit.title,
             docType: hit.docType,
-            score: hit.score,
+            score: hit.similarity,
+            relevance: hit.relevance,
             path: hit.path,
-            url: hit.path.startsWith("github:")
-              ? `https://github.com/${hit.path.slice("github:".length)}`
-              : undefined,
+            url: githubUrl(hit.path),
             snippet: hit.content.replace(/\s+/g, " ").slice(0, 180),
           })),
-          threshold: RETRIEVAL_CONFIG.relevanceThreshold,
+          threshold: result.gate.threshold,
+          scale: result.gate.scale,
         },
       });
 
       const id = "answer";
       writer.write({ type: "text-start", id });
-
-      const best = hits[0];
-      const body =
-        best === undefined || best.score < RETRIEVAL_CONFIG.relevanceThreshold
-          ? `Nothing in the corpus is close enough to answer that. Rather than ` +
-            `generate something plausible, the honest answer is that it is not ` +
-            `on file. The résumé is the authoritative record, and Shubham can be ` +
-            `reached directly.`
-          : `Retrieval found ${hits.length} relevant passages across ` +
-            `${new Set(hits.map((hit) => hit.documentId)).size} documents, listed ` +
-            `below with their similarity scores. Generation is not wired up yet: ` +
-            `the eval harness that measures whether an answer is faithful to ` +
-            `these sources is being built first, so this returns the evidence ` +
-            `rather than prose about it. Embedding took ${embedMs}ms and the ` +
-            `search ${searchMs}ms over ${index.chunks.length} chunks.`;
-
-      for (const word of body.split(" ")) {
-        writer.write({ type: "text-delta", id, delta: `${word} ` });
-        await new Promise((resolve) => setTimeout(resolve, 18));
+      let wrote = false;
+      try {
+        const answer = await streamAnswer({ question, history, retrieval: result, scope });
+        for await (const delta of answer) {
+          writer.write({ type: "text-delta", id, delta });
+          wrote = true;
+        }
+      } catch (error) {
+        console.warn(`generation failed: ${String(error)}`);
+        writer.write({ type: "text-delta", id, delta: wrote ? CUT_OFF : UNAVAILABLE });
       }
       writer.write({ type: "text-end", id });
     },

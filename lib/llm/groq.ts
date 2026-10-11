@@ -27,6 +27,8 @@ export const groq: LlmAdapter = {
     prompt,
     maxTokens,
     temperature,
+    model = MODELS.contextualise.model,
+    signal,
   }: CompleteRequest): Promise<string> {
     const messages = [
       ...(system === undefined ? [] : [{ role: "system", content: system }]),
@@ -41,8 +43,9 @@ export const groq: LlmAdapter = {
         Authorization: `Bearer ${requireKey("GROQ_API_KEY")}`,
         "Content-Type": "application/json",
       },
+      signal,
       body: JSON.stringify({
-        model: MODELS.contextualise.model,
+        model,
         messages,
         max_completion_tokens: maxTokens,
         temperature,
