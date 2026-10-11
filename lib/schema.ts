@@ -36,7 +36,7 @@ export const Skill = z.object({
 export const Role = z.object({
   company: z.string().min(1),
   role: z.string().min(1),
-  start: z.string(), // YYYY-MM
+  start: pending(z.string()), // YYYY-MM, or TODO(owner) until the owner supplies it
   end: z.union([z.string(), z.literal("present")]),
   location: z.string().optional(),
   stack: z.array(z.string()).default([]),
@@ -49,6 +49,10 @@ export const Education = z.object({
   start: z.union([z.string(), z.number()]),
   end: z.union([z.string(), z.number()]),
   status: pending(z.string()).optional(),
+  /** As the certificate or transcript states it; never converted to another scale. */
+  grade: pending(z.string()).optional(),
+  /** What the programme covered, in a sentence. */
+  summary: pending(z.string()).optional(),
   modules: pending(z.array(z.string())).optional(),
 });
 
@@ -57,6 +61,8 @@ export const Certification = z.object({
   issuer: z.string().min(1),
   date: z.union([z.string(), z.number()]),
   verified: z.boolean().optional(),
+  /** The public verification page, so a recruiter can check it directly. */
+  url: z.string().url().optional(),
 });
 
 export const Project = z.object({
@@ -86,6 +92,7 @@ export const Profile = z.object({
     phone: pending(z.string()).optional(),
     github: z.string().url().optional(),
     linkedin: z.string().url().optional(),
+    portfolio: z.string().url().optional(),
     booking: pending(z.string()).optional(),
   }),
 
