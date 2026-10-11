@@ -1,0 +1,431 @@
+/*
+ * The knowledge map's paint. Layout lives in Tailwind classes on the
+ * component; this file holds what Tailwind cannot say: the group palette,
+ * SVG paint, the glow blending and the retrieval choreography.
+ *
+ * The six group colours were chosen by measurement, not by eye. The map is a
+ * scatter, so any two groups can sit side by side, and the pairs that really
+ * do (the three kinds of writing, the delivery-time repository beside them,
+ * the taxi case study inside the taxi notebook) clear a colour-blind
+ * separation of ΔE 12.6 in both themes (OKLab ×100, protanopia and
+ * deuteranopia simulated), and every pair clears ΔE 15 for full colour
+ * vision. The weakest colour-blind pairs, lime against amber or gold and
+ * violet against indigo, belong to groups on opposite sides of the map, and
+ * every group is also named in words: on the map, in the legend and in the
+ * tooltip. Violet marks only the seven case-study passages.
+ */
+
+.root {
+  --km-0: light-dark(#a855f7, #cc5de8); /* case studies: violet */
+  --km-1: light-dark(#be123c, #f97352); /* decision records: rose, the brand coral in the dark */
+  --km-2: light-dark(#5c940d, #a3e635); /* interview answers: lime */
+  --km-3: light-dark(#1098ad, #14b8a6); /* first repository: teal */
+  --km-4: light-dark(#d97706, #f5b83d); /* second repository: amber, the brand gold in the dark */
+  --km-5: light-dark(#4058e0, #91a7ff); /* third repository: indigo */
+  --km-6: var(--ink-muted); /* a seventh group would not be told apart by colour */
+
+  /* The stage the dots sit on: a shallow well in the card, darkest in the
+   * dark theme, where the glow needs a night to show against. */
+  --km-stage: light-dark(rgb(15 20 28 / 0.028), rgb(2 4 10 / 0.42));
+  --km-stage-light: light-dark(rgb(255 255 255 / 0.8), rgb(110 130 255 / 0.07));
+  --km-stage-edge: light-dark(rgb(15 20 28 / 0.07), rgb(255 255 255 / 0.06));
+  --km-stage-shade: light-dark(rgb(36 48 104 / 0.08), rgb(0 0 0 / 0.5));
+  --km-grid: light-dark(rgb(15 20 28 / 0.055), rgb(255 255 255 / 0.045));
+
+  /* Close to the stage colour, so a label's halo reads as a gap in the
+   * field rather than as a box. */
+  --km-halo: light-dark(rgb(244 246 250 / 0.9), rgb(9 12 19 / 0.78));
+  --km-gap: light-dark(rgb(255 255 255 / 0.95), rgb(7 10 16 / 0.95));
+
+  /* Numbers cannot go through light-dark(), so the theme selectors below
+   * retune them. Additive glow needs more strength on a dark ground. */
+  --km-glow: 0.34;
+  --km-halo-alpha: 0.15;
+  --km-dim: 0.3;
+  --km-line: 0.22;
+  --km-gap-width: 1px;
+}
+
+:global(:root[data-theme="dark"]) .root {
+  --km-glow: 0.55;
+  --km-halo-alpha: 0.24;
+  --km-dim: 0.24;
+  --km-line: 0.2;
+  --km-gap-width: 0px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme])) .root {
+    --km-glow: 0.55;
+    --km-halo-alpha: 0.24;
+    --km-dim: 0.24;
+    --km-line: 0.2;
+    --km-gap-width: 0px;
+  }
+}
+
+.s0 { --c: var(--km-0); }
+.s1 { --c: var(--km-1); }
+.s2 { --c: var(--km-2); }
+.s3 { --c: var(--km-3); }
+.s4 { --c: var(--km-4); }
+.s5 { --c: var(--km-5); }
+.s6 { --c: var(--km-6); }
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 95% at 50% 30%, var(--km-stage-light), transparent 72%),
+    var(--km-stage);
+  box-shadow:
+    inset 0 0 0 1px var(--km-stage-edge),
+    inset 0 2px 10px -4px var(--km-stage-shade);
+}
+
+/* A faint square grid under the dots. Square because the map has one scale
+ * on both axes, and lines rather than dots so it cannot be mistaken for
+ * passages. It is the only layer the pointer moves, so the dots seem to float
+ * above it while their positions never shift. */
+.gridClip {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.grid {
+  position: absolute;
+  inset: -12px;
+  background-image:
+    linear-gradient(to right, var(--km-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--km-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center;
+  -webkit-mask-image: radial-gradient(ellipse 72% 68% at 50% 48%, #000 18%, transparent 82%);
+  mask-image: radial-gradient(ellipse 72% 68% at 50% 48%, #000 18%, transparent 82%);
+  transition: transform 900ms var(--ease-out);
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  isolation: isolate;
+}
+
+/* ---------------------------------------------------------------------------
+ * Marks
+ * ------------------------------------------------------------------------- */
+
+.line {
+  stroke: var(--c);
+  stroke-opacity: var(--km-line);
+  stroke-width: 0.8px;
+  stroke-linecap: round;
+  transition: stroke-opacity 500ms var(--ease-out);
+}
+
+.lineDim {
+  stroke-opacity: calc(var(--km-line) * 0.4);
+}
+
+.glow,
+.halo,
+.core,
+.ring,
+.rank,
+.cursor,
+.emph {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.glow {
+  transition: opacity 500ms var(--ease-out);
+}
+
+/* Additive light in the dark theme, so overlapping glows brighten the way
+ * light does and a dot's core is always the brightest point of its glow; on
+ * a light ground the same blend washes out to white, so the light theme
+ * composites normally. */
+:global(:root[data-theme="dark"]) .glow,
+:global(:root[data-theme="dark"]) .halo,
+:global(:root[data-theme="dark"]) .core {
+  mix-blend-mode: plus-lighter;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme])) .glow,
+  :global(:root:not([data-theme])) .halo,
+  :global(:root:not([data-theme])) .core {
+    mix-blend-mode: plus-lighter;
+  }
+}
+
+.core {
+  fill: light-dark(var(--c), color-mix(in oklab, var(--c) 72%, white));
+  /* A hairline of the stage colour keeps touching dots apart on a light
+   * ground; in the dark the glow does that, and an outline would turn each
+   * star into a sticker. */
+  stroke: var(--km-gap);
+  stroke-width: var(--km-gap-width);
+  transition: opacity 500ms var(--ease-out);
+}
+
+.dim {
+  opacity: var(--km-dim);
+}
+
+.ring {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.1px;
+  stroke-opacity: 0.85;
+  vector-effect: non-scaling-stroke;
+}
+
+.ringActive {
+  stroke-width: 1.75px;
+  stroke-opacity: 1;
+}
+
+.rank {
+  fill: var(--ink);
+  font-size: 10px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-anchor: middle;
+  dominant-baseline: central;
+  stroke: var(--km-halo);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+.label {
+  fill: var(--ink-muted);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  text-anchor: middle;
+  dominant-baseline: central;
+  stroke: var(--km-halo);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  pointer-events: none;
+}
+
+.cursor {
+  fill: none;
+  stroke: var(--evidence);
+  stroke-width: 2px;
+  animation: km-lock 240ms var(--ease-out) backwards;
+}
+
+.emph {
+  animation: km-emph 320ms var(--ease-spring) backwards;
+}
+
+/* ---------------------------------------------------------------------------
+ * The retrieval reveal, in the order retrieval happens: every passage is
+ * scored, so every dot flashes once together; the hits light up in rank
+ * order; everything else steps back, all by the same amount. Entrances fill
+ * backwards only, so each mark returns to its own style once it has played.
+ * ------------------------------------------------------------------------- */
+
+.reveal .glow {
+  animation: km-glow-flash 680ms var(--ease-out) backwards;
+}
+
+.reveal .core {
+  animation: km-core-flash 560ms var(--ease-out) backwards;
+}
+
+.reveal .glow.dim {
+  animation:
+    km-glow-flash 680ms var(--ease-out) backwards,
+    km-undim 620ms var(--ease-in-out) 300ms backwards;
+}
+
+.reveal .core.dim {
+  animation:
+    km-core-flash 560ms var(--ease-out) backwards,
+    km-undim 620ms var(--ease-in-out) 300ms backwards;
+}
+
+.reveal .lineDim {
+  animation: km-line-undim 620ms var(--ease-in-out) 300ms backwards;
+}
+
+.reveal .halo {
+  animation: km-grow 820ms var(--ease-spring) calc(380ms + var(--r, 0) * 80ms) backwards;
+}
+
+.reveal .ring {
+  animation: km-ring-in 560ms var(--ease-out) calc(380ms + var(--r, 0) * 80ms) backwards;
+}
+
+.reveal .rank {
+  animation: km-rank-in 380ms var(--ease-out) calc(460ms + var(--r, 0) * 80ms) backwards;
+}
+
+@keyframes km-glow-flash {
+  30% {
+    transform: scale(1.75);
+  }
+}
+
+@keyframes km-core-flash {
+  28% {
+    transform: scale(2.1);
+  }
+}
+
+@keyframes km-undim {
+  from {
+    opacity: 1;
+  }
+}
+
+@keyframes km-line-undim {
+  from {
+    stroke-opacity: var(--km-line);
+  }
+}
+
+@keyframes km-grow {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes km-ring-in {
+  from {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes km-rank-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+@keyframes km-lock {
+  from {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes km-emph {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Interaction layer, tooltip and legend
+ * ------------------------------------------------------------------------- */
+
+/* Sits over the whole stage: the one tab stop, and the surface the pointer
+ * is measured on. Transparent; the dots underneath do the drawing. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.overlay[data-pointing] {
+  cursor: pointer;
+}
+
+.overlay:focus-visible {
+  outline-offset: 3px;
+}
+
+/* Anchored at the dot, and shifted left by the dot's own share of the width,
+ * so a tooltip near either edge stays inside the map without measuring it. */
+.tip {
+  position: absolute;
+  z-index: 3;
+  width: max-content;
+  max-width: min(17rem, 100%);
+  transform: translate(calc(var(--ax) * -100%), calc(-100% - 14px));
+  pointer-events: none;
+  animation: km-tip 180ms var(--ease-out) backwards;
+}
+
+.tip[data-below] {
+  transform: translate(calc(var(--ax) * -100%), 14px);
+}
+
+@keyframes km-tip {
+  from {
+    opacity: 0;
+  }
+}
+
+.swatch {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: var(--c);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--c) 16%, transparent),
+    0 0 10px 1px color-mix(in srgb, var(--c) 45%, transparent);
+}
+
+.keyRing {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.1px;
+  stroke-opacity: 0.85;
+}
+
+.keyRank {
+  fill: var(--ink);
+  font-size: 8.5px;
+  font-weight: 650;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.keyGlow {
+  fill: color-mix(in srgb, var(--ink-muted) 32%, transparent);
+}
+
+/* Motion off means the final state, at once: the global rule shortens
+ * durations but leaves delays, which would hold every hit dark for most of a
+ * second, so the reveal is switched off outright. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal .glow,
+  .reveal .core,
+  .reveal .lineDim,
+  .reveal .halo,
+  .reveal .ring,
+  .reveal .rank,
+  .cursor,
+  .emph,
+  .tip {
+    animation: none !important;
+  }
+
+  .grid {
+    transition: none;
+  }
+}

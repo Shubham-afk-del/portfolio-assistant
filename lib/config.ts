@@ -18,8 +18,32 @@
 export type Provider = "gemini" | "groq" | "voyage" | "anthropic" | "local";
 
 export const MODELS = {
-  /** Final answer generation. Quality matters most here. */
-  generate: { provider: "gemini" as Provider, model: "gemini-flash-latest" },
+  /**
+   * Final answer generation. Quality matters most here, but the answer is on
+   * the path to the first token, and a model that does not answer at all
+   * has no quality.
+   *
+   * Flash-Lite, with Flash as the fallback, from eight test questions on
+   * 9 Oct 2026: Flash refused two with 503 "high demand" and did not start
+   * a third within 12 seconds, while Flash-Lite answered both questions
+   * passed to it and every rerank request. Which writes the more faithful
+   * answers is a Phase 4 measurement, not this comment's call.
+   *
+   * Was `gemini-flash-latest`, which then resolved to gemini-3.8-flash: it
+   * rejects thinking level "minimal" and took about 5 seconds to its first
+   * token. Pinned for the same reason as the reranker: an eval number has
+   * to come from a model that holds still.
+   *
+   * `thinking` is Gemini 3's thinking level, set per model because not every
+   * model accepts every level.
+   */
+  generate: { provider: "gemini" as Provider, model: "gemini-3.5-flash-lite", thinking: "minimal" },
+  /**
+   * When `generate` is overloaded (503), out of quota (429) or slow to start.
+   * Google counts quota per model, so one still has quota when the other has
+   * none. A last resort only: its free tier allows 20 requests a day.
+   */
+  generateFallback: { provider: "gemini" as Provider, model: "gemini-3.5-flash", thinking: "minimal" },
   /**
    * High-volume, latency-sensitive stages.
    *
@@ -33,10 +57,36 @@ export const MODELS = {
   contextualise: { provider: "groq" as Provider, model: "openai/gpt-oss-20b" },
   /** Fallback for the trained classifier's low-confidence band (Phase 6). */
   classify: { provider: "groq" as Provider, model: "openai/gpt-oss-20b" },
-  /** Eval judge. Kept separate so it can be upgraded independently of generation. */
-  judge: { provider: "gemini" as Provider, model: "gemini-flash-latest" },
+  /**
+   * Eval judge. Kept separate so it can be upgraded independently of
+   * generation, and a different model from the one it judges, so it is not
+   * marking its own work. A little thinking, since checking a claim against
+   * its sources is reasoning. Pinned, as above.
+   *
+   * Meant to be 3.5 Flash, stronger than the generator. Its free tier turned
+   * out to allow 20 requests a day (the 429's quota id said so, 10 Oct 2026),
+   * and one eval run needs 70. 3.1 Flash-Lite is smaller than the generator,
+   * so its agreement with human labels has to be measured (Phase 3 step 4,
+   * Cohen's κ) before its scores mean much; SPEC-v2-ML-OVERLAY §F asks for
+   * that anyway.
+   */
+  judge: { provider: "gemini" as Provider, model: "gemini-3.1-flash-lite", thinking: "low" },
   embed: { provider: "voyage" as Provider, model: "voyage-3-large", dimensions: 1024 },
-  rerank: { provider: "voyage" as Provider, model: "rerank-2" },
+  /**
+   * Second-stage relevance, by asking a small LLM to grade each candidate.
+   *
+   * Was Voyage `rerank-2`, a cross-encoder trained for exactly this job.
+   * Without a payment method Voyage allows 3 requests a minute, shared with
+   * query embedding, so every reranked search would spend two of the three.
+   * ZERO-COST-STACK §3 names an LLM reranker as the free alternative, and the
+   * Voyage adapter still implements rerank, so switching back is this line.
+   *
+   * Pinned rather than `gemini-flash-lite-latest`: an eval number has to come
+   * from a model that holds still, and an alias can move between runs.
+   * Checked against the live model list on 9 Oct 2026: the alias resolves to
+   * this model, and 2.5 Flash-Lite already answers 404 to new keys.
+   */
+  rerank: { provider: "gemini" as Provider, model: "gemini-3.5-flash-lite", thinking: "minimal" },
 } as const;
 
 /** Ordered failover on 429 / 5xx. Stage falls through this list. */
@@ -73,6 +123,18 @@ export const PROVIDER_LIMITS: Record<string, ProviderLimit> = {
   voyage: { requestsPerMinute: 3, tokensPerMinute: 10_000, maxTokensPerRequest: 7_000 },
   /** Groq on_demand, openai/gpt-oss-20b: 8K TPM is the binding limit. */
   groq: { requestsPerMinute: 30, tokensPerMinute: 8_000, maxTokensPerRequest: 4_000 },
+  /**
+   * Gemini free tier. Not measured like the two above: Google shows free-tier
+   * numbers only inside AI Studio, so this is a deliberately low guess. When
+   * Google does refuse, the 429 names the quota and its value, and the adapter
+   * logs both, so the first refusal replaces the guess with a fact. The first
+   * did, on 10 Oct 2026: 3.5 Flash allows 20 requests a day per project. The
+   * Flash-Lite models allow far more; several hundred a day went unrefused.
+   *
+   * Google counts quota per model. This budget is per provider, which is
+   * stricter: reranking and generation share it, two requests a question.
+   */
+  gemini: { requestsPerMinute: 10, tokensPerMinute: 200_000, maxTokensPerRequest: 30_000 },
 };
 
 // ---------------------------------------------------------------------------
@@ -162,8 +224,19 @@ export interface RetrievalConfig {
   /** Row 4: lexical BM25 alongside dense, fused with RRF. */
   hybrid: boolean;
   rrfK: number;
+  /**
+   * Okapi BM25's two parameters, at the textbook values. k1: how fast repeats
+   * of a term stop adding score. b: how strongly a long chunk is discounted
+   * for its length. Sweepable like everything else here.
+   */
+  bm25: { k1: number; b: number };
   /** Row 6. */
   rerank: boolean;
+  /**
+   * How many fused candidates the reranker grades. Its cost, in tokens and in
+   * latency, grows linearly with this, and nothing below it can be returned.
+   */
+  rerankCandidates: number;
   /** Row 7: filters extracted by the query rewriter. */
   metadataFilters: boolean;
   /** Row 8 (Phase 9): learned projection over frozen embeddings. */
@@ -174,8 +247,13 @@ export interface RetrievalConfig {
   finalTopK: number;
   /** Stops one long case study crowding out the rest of the corpus. */
   maxChunksPerDocument: number;
-  /** Below this reranked score, refuse instead of generating. Tuned on the golden set. */
-  relevanceThreshold: number;
+  /**
+   * Below this, refuse instead of generating. Two scales, because ablation
+   * rows 0 to 5 run without a reranker and still need a gate: cosine
+   * similarity when reranking is off, the reranker's 0 to 1 score when it is
+   * on. Both are tuned on the golden set.
+   */
+  relevanceThreshold: { similarity: number; rerank: number };
   /** Agent may re-search this many times within one turn. */
   maxSearchHops: number;
 }
@@ -188,7 +266,9 @@ export const RETRIEVAL_CONFIG: RetrievalConfig = {
   parentExpansion: true,
   hybrid: true,
   rrfK: 60,
+  bm25: { k1: 1.2, b: 0.75 },
   rerank: true,
+  rerankCandidates: 20,
   metadataFilters: true,
   embeddingAdapter: false,
 
@@ -196,7 +276,10 @@ export const RETRIEVAL_CONFIG: RetrievalConfig = {
   lexicalTopK: 40,
   finalTopK: 8,
   maxChunksPerDocument: 3,
-  relevanceThreshold: 0.35, // TODO(owner): set from the Phase 4 sweep, not by feel
+  // TODO(owner): set both from the Phase 4 sweep, not by feel. On the
+  // reranker's scale 0.5 sits between its grades 1 and 2: something retrieved
+  // has to answer at least part of the question.
+  relevanceThreshold: { similarity: 0.35, rerank: 0.5 },
   maxSearchHops: 3,
 };
 
@@ -227,7 +310,12 @@ export const ABLATIONS: Record<string, Partial<RetrievalConfig>> = {
 
 export const GENERATION = {
   maxTokens: 500, // also keeps us inside a 10s serverless wall-clock limit
-  temperature: 0.3,
+  /**
+   * 0, down from 0.3, after one question asked three times on 9 Oct 2026 got
+   * a refusal once and a misspelled university name once: sampling noise a
+   * factual assistant should not have. Phase 4 measures it properly.
+   */
+  temperature: 0,
   judgeTemperature: 0, // judges must be deterministic
 } as const;
 
@@ -241,8 +329,19 @@ export const GUARDS = {
   semanticCacheSimilarity: 0.97,
   /** Escalation dedupe against pending and answered questions. */
   escalationDedupeSimilarity: 0.93,
+  /**
+   * A request body past this is not a conversation: the client resends the
+   * whole history each turn, and a long one runs to tens of kilobytes.
+   */
+  maxRequestBytes: 512_000,
   rateLimits: {
     messagesPer10Min: 20,
+    /**
+     * Questions answered site-wide per Gemini quota day (lib/guards/rate-limit.ts).
+     * Each question is two Flash-Lite requests out of about 500 a day, and the
+     * evals draw on the same key, so 200 leaves room for a run and for retries.
+     */
+    questionsPerDay: 200,
     fitChecksPerHour: 5,
     escalationsPerSession: 3,
     escalationsPerDay: 20,

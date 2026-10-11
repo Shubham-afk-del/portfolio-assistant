@@ -55,3 +55,14 @@ The risk I am carrying is that the measurement work is slower and less motivatin
 than the interface work, and an unfinished eval harness with no chat box is worth
 nothing at all. The mitigation is the phase gate: one phase per session, reviewed
 and committed, so the thing is always in a state I could show.
+
+## Update, 11 October 2026
+
+The order did not hold. I asked for the interface first, then for working
+answers, so generation came forward from Phase 5 to 9 October, and the chat box
+has answered since then: from the profile, and from the passages that pass the
+relevance gate. The measurement this record argued for was not dropped, only
+moved alongside: the golden set, the retrieval metrics and the answer evals of
+Phase 3 were built in the same days, and the answer evals are the gate the site
+has to pass before it is published. The principle survived the change of order:
+nothing on the page claims more than has been measured.

@@ -1,0 +1,70 @@
+/*
+ * In the components layer, beside .orb in app/globals.css, so a utility
+ * passed through className (absolute, a margin, an entrance animation) wins
+ * over these defaults exactly as it does on the CSS orb. Unlayered, these
+ * rules would beat every utility whatever its specificity.
+ */
+@layer components {
+  /*
+   * Three layers stacked in one grid cell: the CSS orb as the fallback, the
+   * canvas over it, and the S over both. The root keeps the orb's own size in
+   * the layout; the canvas reaches past it on every side for the halo, and is
+   * positioned absolutely so that bleed never moves anything around it.
+   */
+  .root {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .root > * {
+    grid-area: 1 / 1;
+  }
+
+  /* The fallback draws its own S. This component draws a single S above the
+   * canvas instead, so the mark never doubles up or flickers during the fade. */
+  .fallback :global(.orb-glyph) {
+    visibility: hidden;
+  }
+
+  .root > .fallback {
+    transition: opacity 200ms var(--ease-out);
+  }
+
+  .root > .canvas {
+    position: absolute;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 600ms var(--ease-out);
+  }
+
+  .root[data-ready] > .canvas {
+    opacity: 1;
+  }
+
+  /* Once the canvas has drawn, the fallback steps back. It waits until the
+   * canvas is nearly opaque, so the pair never dips to half strength together,
+   * and it must go entirely: the shader's silhouette breathes, and the CSS
+   * orb's ring and shadow would otherwise show at its edge. */
+  .root[data-ready] > .fallback {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 350ms var(--ease-out) 250ms,
+      visibility 0s linear 600ms;
+  }
+
+  /* Hidden, the fallback's spin has nothing to show, so it stops costing. */
+  .root[data-ready] > .fallback,
+  .root[data-ready] > .fallback * {
+    animation-play-state: paused;
+  }
+
+  .root > .glyph {
+    z-index: 2;
+    pointer-events: none;
+  }
+}
