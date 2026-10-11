@@ -1,0 +1,305 @@
+/*
+ * The profile panel's choreography (ProfilePanel.tsx). The card is dealt in
+ * first (HoloCard.module.css); everything else rises after it in reading
+ * order, each step 70ms behind the last, on the spring the rest of the
+ * interface uses.
+ *
+ * In the sidebar this is part of the load-time entrance, so it is gated on
+ * [data-entrance], which the head script sets only when the page is visible
+ * and motion is allowed (app/layout.tsx): a tab opened in the background
+ * gets the finished panel, not one waiting on animations. In the sheet it is
+ * always a response to a tap, so it plays as the sheet slides up.
+ *
+ * Every animation here fills backwards only, so once it has played the
+ * element is back to its own style, with no transform left behind. None of
+ * these elements holds a backdrop-filter, so fading them is safe.
+ */
+
+.sidebar {
+  --base: 300ms;
+}
+
+.sheet {
+  --base: 240ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global([data-entrance]) .sidebar .step,
+  .sheet .step {
+    animation: panel-rise 780ms var(--ease-spring) backwards;
+    animation-delay: calc(var(--base) + var(--i, 0) * 70ms);
+  }
+
+  /* The tiles pop rather than rise: a little scale, on the bouncier spring. */
+  :global([data-entrance]) .sidebar .tile,
+  .sheet .tile {
+    animation: panel-pop 720ms var(--ease-pop) backwards;
+    animation-delay: calc(var(--base) + var(--i, 0) * 70ms);
+  }
+
+  /*
+   * The timeline, on first showing and after every tab switch. The line
+   * draws down, each entry rises as its node pops onto the line, and its
+   * tools follow it in. --start is when the panel's timeline begins.
+   */
+  :global([data-entrance]) .enter .line,
+  .reveal .line {
+    animation: panel-draw 1000ms var(--ease-out) backwards;
+    animation-delay: calc(var(--start, 0ms) - 60ms);
+  }
+
+  /* Once the line has drawn, a point of light runs down it, the portfolio
+   * site's timeline comet: the eye is led from the latest role to the first. */
+  :global([data-entrance]) .enter .comet::before,
+  .reveal .comet::before {
+    animation: panel-comet 1500ms var(--ease-in-out) backwards;
+    animation-delay: calc(var(--start, 0ms) + 700ms);
+  }
+
+  :global([data-entrance]) .enter .item,
+  .reveal .item {
+    animation: panel-rise 660ms var(--ease-spring) backwards;
+    animation-delay: calc(var(--start, 0ms) + var(--i, 0) * 75ms);
+  }
+
+  :global([data-entrance]) .enter .node,
+  .reveal .node {
+    animation: panel-node 620ms var(--ease-pop) backwards;
+    animation-delay: calc(var(--start, 0ms) + var(--i, 0) * 75ms + 90ms);
+  }
+
+  :global([data-entrance]) .enter .tag,
+  .reveal .tag {
+    animation: panel-tag 460ms var(--ease-out) backwards;
+    animation-delay: calc(var(--start, 0ms) + var(--i, 0) * 75ms + 200ms + var(--j, 0) * 35ms);
+  }
+}
+
+@keyframes panel-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes panel-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+}
+
+@keyframes panel-draw {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes panel-node {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes panel-tag {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+.line {
+  transform-origin: top;
+}
+
+/* The comet's track spans the line, as a size container, so the light can
+ * travel exactly the line's length in cqh whatever the number of entries.
+ * It rests above the track, out of sight, before and after its run. */
+.comet {
+  container-type: size;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.comet::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 7px;
+  height: 56px;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, #fff, color-mix(in srgb, #3b9eff 70%, transparent) 45%, transparent);
+  filter: drop-shadow(0 0 6px var(--brand-glow));
+  transform: translate3d(0, -60px, 0);
+}
+
+@keyframes panel-comet {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -60px, 0);
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 100cqh, 0);
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * The résumé button: it lifts, its arrow drops toward the download, and a
+ * band of light crosses it once per hover.
+ * ----------------------------------------------------------------------- */
+
+.resume {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow: 0 14px 30px -14px var(--brand-glow);
+  transition:
+    transform 420ms var(--ease-spring),
+    box-shadow 300ms var(--ease-out);
+}
+
+.resume::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.24) 47%,
+    rgb(255 255 255 / 0.06) 55%,
+    transparent 70%
+  );
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+
+.resumeIcon,
+.resumeArrow {
+  transition: transform 420ms var(--ease-pop);
+}
+
+/* -------------------------------------------------------------------------
+ * Contact tiles: the script moves the tile (a magnetic pull and a lift);
+ * the stylesheet adds the light under the pointer, the border and the
+ * shadow. The press uses the individual scale property, so it composes
+ * with the script's transform rather than replacing it.
+ * ----------------------------------------------------------------------- */
+
+.tileLink {
+  position: relative;
+  isolation: isolate;
+  transition:
+    border-color 220ms var(--ease-out),
+    box-shadow 320ms var(--ease-out),
+    scale 160ms var(--ease-out);
+}
+
+.tileLink::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    96px circle at var(--tile-x, 50%) var(--tile-y, 50%),
+    color-mix(in srgb, var(--brand-a) 14%, transparent),
+    transparent 72%
+  );
+  opacity: 0;
+  transition: opacity 260ms var(--ease-out);
+  pointer-events: none;
+}
+
+.tileIcon {
+  transition: transform 460ms var(--ease-pop);
+}
+
+.tileLink:active {
+  scale: 0.96;
+}
+
+/* The rows: the icon chip tips up toward the value on hover. */
+.rowIcon {
+  transition:
+    transform 420ms var(--ease-pop),
+    background-color 200ms var(--ease-out);
+}
+
+/* -------------------------------------------------------------------------
+ * Tabs: the indicator is a shared element (Motion's layoutId) that slides
+ * between them; the icon of the tab being chosen gives a small nod.
+ * ----------------------------------------------------------------------- */
+
+.tabIcon {
+  transition: transform 460ms var(--ease-pop);
+}
+
+.tab[aria-selected="true"] .tabIcon {
+  transform: scale(1.08);
+}
+
+.verify svg {
+  transition: transform 300ms var(--ease-pop);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .resume:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px -14px var(--brand-glow);
+  }
+
+  .resume:hover::after {
+    transform: translateX(110%);
+    transition: transform 1000ms var(--ease-out);
+  }
+
+  .resume:hover .resumeIcon {
+    transform: rotate(-6deg) scale(1.06);
+  }
+
+  .resume:hover .resumeArrow {
+    transform: translateY(3px);
+  }
+
+  .tileLink:hover {
+    border-color: color-mix(in srgb, var(--brand-a) 42%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-highlight),
+      0 0 0 1px var(--glass-edge),
+      0 16px 28px -18px var(--brand-glow);
+  }
+
+  .tileLink:hover::before {
+    opacity: 1;
+  }
+
+  .tileLink:hover .tileIcon {
+    transform: scale(1.12);
+  }
+
+  .row:hover .rowIcon {
+    transform: translateY(-1px) rotate(-8deg);
+  }
+
+  .tab[aria-selected="false"]:hover .tabIcon {
+    transform: translateY(-1px) rotate(-8deg);
+  }
+
+  .verify:hover svg {
+    transform: translate(1px, -1px);
+  }
+}
+
+/* After the hover rules, so a press wins over the lift. */
+.resume:active {
+  transform: scale(0.985);
+  transition-duration: 120ms;
+}

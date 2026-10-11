@@ -1,0 +1,88 @@
+/*
+ * The console's chrome, arriving on page load. The panel rises first
+ * (.enter-panel in app/globals.css); then the pieces of glass dock onto it
+ * one after another, each from its own edge: the island drops in at the top
+ * centre and opens out (StatusIsland.module.css), the corner controls drop
+ * in at the top right with their buttons following, and the composer docks
+ * up from the bottom edge (Composer.module.css). Everything is gated on
+ * [data-entrance], which the head script sets only when the page is visible
+ * at load and motion is allowed.
+ *
+ * Glass rules hold throughout: a piece of glass may move or fade itself,
+ * but nothing that contains glass ever fades, filters or masks, or the
+ * glass would frost only what is inside that ancestor.
+ */
+
+/* The transcript and the welcome fade in under the chrome. They are
+ * siblings of the glass, never its ancestors, so fading them is safe. */
+:global([data-entrance]) .content {
+  animation: content-in 700ms var(--ease-out) 90ms backwards;
+}
+
+@keyframes content-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Phones: the profile pill drops in where the island would be. */
+:global([data-entrance]) .pill {
+  animation: drop-in 680ms var(--ease-pop) 220ms backwards;
+}
+
+/* The corner controls: the glass drops in, then each button follows. */
+:global([data-entrance]) .controls {
+  animation: drop-in 680ms var(--ease-pop) 300ms backwards;
+}
+
+/* Not "New chat": it is never there on load, and has an entrance of its own. */
+:global([data-entrance]) .controls .row > :not(.newChat) {
+  animation: control-in 520ms var(--ease-out) backwards;
+}
+
+:global([data-entrance]) .controls .row > :not(.newChat):nth-child(1) {
+  animation-delay: 400ms;
+}
+
+:global([data-entrance]) .controls .row > :not(.newChat):nth-child(2) {
+  animation-delay: 470ms;
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.88);
+  }
+}
+
+@keyframes control-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+    filter: blur(3px);
+  }
+}
+
+/* The cluster's buttons, kept right-aligned so that when "New chat" joins
+ * them the glass grows to the left and uncovers it there. */
+.row {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.125rem;
+}
+
+/* "New chat" arriving once there is a conversation to leave: it slides out
+ * from under its neighbours and comes into focus as the glass opens. */
+.newChat {
+  animation: new-chat-in 520ms var(--ease-out) 90ms backwards;
+}
+
+@keyframes new-chat-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px) scale(0.92);
+    filter: blur(4px);
+  }
+}

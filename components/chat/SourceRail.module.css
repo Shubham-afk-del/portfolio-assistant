@@ -1,0 +1,119 @@
+/*
+ * The source cards. They are dealt in from depth by motion (SourceRail.tsx);
+ * what is here is how they answer the pointer and how they open.
+ */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* A card lifts toward the pointer, its shadow deepening beneath it, and its
+ * edge takes the brand colour: the same cue as the follow-up chips. The
+ * shadow list repeats .glass-inset's own two, which it replaces. */
+.card {
+  transition:
+    transform 460ms var(--ease-spring),
+    box-shadow 320ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--brand-a) 38%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-highlight),
+      0 0 0 1px var(--glass-edge),
+      0 16px 30px -20px var(--glass-shadow),
+      0 10px 20px -16px var(--brand-glow);
+  }
+}
+
+/* The light on the glass where the pointer is (components/motion/useTilt.ts
+ * writes the position and the hover). Source cards do not tilt: they sit in
+ * a narrow column under an answer, where a lean would read as a wobble. */
+.card {
+  position: relative;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--tilt-h, 0);
+  background: radial-gradient(
+    300px circle at calc(var(--tilt-x, 0.5) * 100%) calc(var(--tilt-y, 0.5) * 100%),
+    color-mix(in srgb, #fff 18%, transparent),
+    transparent 65%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.card[open] {
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 0 0 1px var(--glass-edge),
+    0 12px 32px -18px var(--glass-shadow);
+}
+
+/* Pointed at on the knowledge map. */
+.card[data-active] {
+  border-color: color-mix(in srgb, var(--brand-a) 60%, transparent);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 0 0 1px color-mix(in srgb, var(--brand-a) 45%, transparent),
+    0 10px 24px -16px var(--brand-glow);
+}
+
+/* Opening a card: where the browser can size details to auto, its body
+ * springs open instead of appearing, and on every opening the body itself
+ * slides in a few pixels as it fades up. */
+@supports selector(::details-content) {
+  .card {
+    interpolate-size: allow-keywords;
+  }
+
+  .card::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size 440ms var(--ease-spring),
+      content-visibility 440ms allow-discrete;
+  }
+
+  .card[open]::details-content {
+    block-size: auto;
+  }
+}
+
+.card[open] .body {
+  animation: body-in 380ms var(--ease-out) backwards;
+}
+
+@keyframes body-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* The rank lands on its card a beat after the card itself. */
+.rank {
+  animation: rank-in 560ms var(--ease-pop) backwards;
+  animation-delay: var(--land, 0ms);
+}
+
+@keyframes rank-in {
+  from {
+    opacity: 0;
+    scale: 0.2;
+  }
+}
+
+.meter {
+  animation-delay: var(--land, 0ms);
+}

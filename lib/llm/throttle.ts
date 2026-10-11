@@ -1,4 +1,5 @@
 import { PROVIDER_LIMITS } from "@/lib/config";
+import { ProviderError } from "./types";
 
 /**
  * Client-side rate limiting, per provider.
@@ -68,16 +69,29 @@ function waitFor(provider: string, tokens: number): number {
 /**
  * Runs `work` once the provider's budget allows it. Calls to the same provider
  * queue behind each other.
+ *
+ * `maxWaitMs` is for a caller with a visitor waiting on it: when the queue and
+ * the budget together would hold the call longer than that, it fails at once
+ * instead, without spending the budget, and the caller does without.
  */
 export function throttled<T>(
   provider: string,
   tokens: number,
   work: () => Promise<T>,
+  maxWaitMs = Infinity,
 ): Promise<T> {
   const previous = queues.get(provider) ?? Promise.resolve();
+  const queued = Date.now();
 
   const next = previous.then(async () => {
     const wait = waitFor(provider, tokens);
+    if (Date.now() - queued + wait > maxWaitMs) {
+      throw new ProviderError(
+        `${provider} rate limit: the next request slot is ${(wait / 1000).toFixed(1)}s away`,
+        429,
+        false,
+      );
+    }
     if (wait > 0) {
       console.log(`  waiting ${(wait / 1000).toFixed(1)}s for the ${provider} rate limit`);
       await sleep(wait);

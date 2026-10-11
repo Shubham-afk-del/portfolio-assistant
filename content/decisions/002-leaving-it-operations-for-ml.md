@@ -47,7 +47,7 @@ credential; this assistant is meant to be the portfolio half.
 
 The cost is real: a salary given up, tuition, and a student visa that permits
 20 hours a week in term time rather than full-time work until the course
-completes in May 2027.
+completes in January 2027.
 
 What it buys is time to build things that can be measured, and a dissertation in
 agentic AI and LLMs that sits on the same ground as the work I want to be hired

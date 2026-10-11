@@ -18,11 +18,17 @@ location: London, UK
 
 contact:
   email: shubhamsingh90390@gmail.com
-  # Phone deliberately omitted: email only. A number in a committed YAML file
-  # gets scraped, and the résumé PDF already carries it for anyone who downloads
-  # it — which is a person who has already shown intent. Decided 18 Sep 2026.
+  # Phone: shown in the profile panel at the owner's request (9 Oct 2026), but
+  # read from the CONTACT_PHONE environment variable instead of being written
+  # here. The reason it was first left out still applies to this file: a
+  # number in a committed YAML file gets scraped. Set it in .env.local locally
+  # and in the Vercel project settings for production.
   github: https://github.com/Shubham-afk-del
   linkedin: https://linkedin.com/in/shubham-singh-00236a191
+  # The owner's new portfolio, given by him on 11 Oct 2026 and checked live
+  # the same day. It replaced https://shubham-k-s.netlify.app, which the
+  # résumé PDF still links to.
+  portfolio: https://shubham-kumar-singh.vercel.app
   booking: TODO(owner) # Cal.com free tier
 
 # ---------------------------------------------------------------------------
@@ -31,8 +37,12 @@ contact:
 availability:
   # Kept short: the hero renders this as a chip beside the location. The detail
   # lives in notes, which the model gets in full.
-  status: Open to part-time now, and full-time from June 2027
-  full_time_from: 2027-06
+  # Matched to the portfolio site on 11 Oct 2026: he already holds a part-time
+  # role (Student Ambassador, below), so internships lead, not part-time work.
+  status: Open to internships, and full-time from February 2027
+  # Changed by the owner on 10 Oct 2026 from June 2027: the MSc completes in
+  # January 2027.
+  full_time_from: 2027-02
   # Rewritten 18 Sep 2026 against the eVisa on file (Student leave, 29 Dec 2025
   # to 4 May 2027). The previous wording asserted the Graduate Route as though
   # already held. Verified conditions of the current status:
@@ -43,19 +53,16 @@ availability:
   #   - permanent full-time work on applying for the Graduate Route, once the
   #     course is completed
   notes: >-
-    Open to part-time work alongside the MSc at up to 20 hours a week in term
-    time and full time during university holidays, a summer 2027 internship, an
+    Open to AI and ML internships, including a summer 2027 internship or an
     industrial placement where it forms an assessed part of the programme, and
-    full-time roles from June 2027.
-    MSc completes May 2027. Current permission is a Student visa valid until
+    to full-time roles from February 2027. He already works part-time alongside
+    the MSc, as a Student Ambassador at Northeastern University London.
+    MSc completes January 2027. Current permission is a Student visa valid until
     4 May 2027, which allows up to 20 hours of work a week in term time and full
     time during university holidays. For a permanent full-time role from
     graduation I would apply for the Graduate Route, which grants two years of
     unrestricted UK work with no sponsorship required. That application has not
     been made yet.
-  # TODO(owner): if you DO want part-time or a summer internship during study,
-  # add it here — your student visa permits limited term-time hours. Confirm the
-  # exact permitted hours on your BRP/eVisa before publishing a number.
 
 work_authorization:
   disclose: true
@@ -65,7 +72,7 @@ work_authorization:
   statement: >-
     I'm in the UK on a Student visa valid until 4 May 2027, which allows up to
     20 hours of work a week in term time and full time during university
-    holidays. From graduation in May 2027 I intend to apply for the Graduate
+    holidays. From graduation in January 2027 I intend to apply for the Graduate
     Route, which would give two years of unrestricted UK work with no
     sponsorship required.
 
@@ -76,9 +83,10 @@ locations_considered:
   - Open to relocation within the UK
 
 target_roles:
+  # Internships first, as on the portfolio site (11 Oct 2026).
+  - AI / ML Internship or Placement
   - AI Engineer
   - Machine Learning Engineer
-  - AI / ML Intern or Placement
 
 summary: >-
   I spent three years in enterprise IT operations at Capgemini and Tech Mahindra,
@@ -192,8 +200,47 @@ skills:
       Case management for Netgear and Orbi support at Tech Mahindra, August 2022
       to June 2023.
 
+  # Added 9 Oct 2026 at the owner's request, and set to `working` the same day
+  # on his correction: he is building these, not studying them, and INTAKE.md
+  # defines working as "shipped something real" and familiar as "coursework or
+  # tutorials only". `strong` (production, independent) is the next step, once
+  # this assistant is deployed and its evals are published.
+  - name: Agentic AI
+    level: working
+    evidence: >-
+      Building now, as the subject of my MSc dissertation (LDSCI7237, agentic AI
+      and large language models) at Northeastern University London. This
+      assistant is next: an agent loop that decides when to search my documents
+      again before answering is its planned next stage.
+
+  - name: Retrieval-augmented generation (RAG)
+    level: working
+    evidence: >-
+      Building this assistant, a working RAG pipeline: hybrid keyword (BM25) and
+      semantic search fused with reciprocal rank fusion, an LLM reranker, and
+      answers written only from the retrieved passages. An evaluation harness
+      for retrieval quality and faithfulness comes next.
+
+  - name: Large language models
+    level: working
+    evidence: >-
+      Building with them now: this assistant streams answers from Gemini models
+      through its own provider layer, with a fallback model and prompts that keep
+      answers inside my documents. At Capgemini I used an LLM in a Python tool
+      that drafted Active Directory changes for my review, saving roughly 2 to 5
+      hours of my own time a week.
+
 # ---------------------------------------------------------------------------
 experience:
+  # Added 9 Oct 2026 at the owner's request; the source is his LinkedIn
+  # profile. TODO(owner): the start month (YYYY-MM). Until it is filled the
+  # timeline shows the role as "Current" and the assistant gives no date.
+  - company: Northeastern University London
+    role: Student Ambassador (part-time)
+    start: TODO(owner)
+    end: present
+    location: London, UK
+
   - company: Capgemini
     role: Senior Analyst, IT Support
     start: 2023-06
@@ -245,11 +292,19 @@ experience:
       - Tracked and resolved cases in Kapture CRM with accurate record keeping.
 
 education:
+  # Grades, dates and summaries added 9 Oct 2026 from the owner's LinkedIn and
+  # the certificates in his Documents/Education folder. Grades are written as
+  # the source states them and never converted to another scale.
   - school: Northeastern University London
     credential: MSc Artificial Intelligence & Computer Science
-    start: 2025
-    end: 2027-05
+    # Jan 2026 per LinkedIn (was 2025); it matches the Student visa's start on
+    # 29 Dec 2025. Corrected by the owner on 9 Oct 2026: completes January 2027.
+    start: 2026-01
+    end: 2027-01
     status: in progress
+    summary: >-
+      Focused on machine learning, deep learning, Python, statistics and applied
+      AI, with research-oriented coursework and peer learning groups.
     modules:
       - LCSCI7224 Web Services
       - LCSCI7225 Programming Design Paradigm
@@ -261,37 +316,71 @@ education:
       - LDSCI7237 Artificial Intelligence Dissertation (agentic AI and LLMs)
   - school: IIIT Bangalore
     credential: Postgraduate Diploma in Computer Science
-    start: 2025
-    end: 2026
-    status: completed # TODO(owner): exact award date, so the bot can answer "when"
+    # Dates and grade per LinkedIn. The certificate on file is the Advanced
+    # Certificate Programme in Data Science (28 Oct 2025), listed under
+    # certifications.
+    start: 2025-01
+    end: 2026-01
+    status: completed
+    grade: 96.25% (CGPA 3.85 out of 4.0)
+    summary: >-
+      An intensive data science and computer science programme covering Python,
+      data tooling, machine learning and advanced NLP.
   - school: Chandigarh University
     credential: Bachelor of Computer Applications (BCA)
-    start: 2021
-    end: 2024
+    # Sep 2021 to Sep 2024 per LinkedIn. The degree certificate (issued 21 May
+    # 2025) gives the final examination as October 2024 and the CGPA, with no
+    # percentage.
+    start: 2021-09
+    end: 2024-09
+    status: completed
+    grade: CGPA 5.92 out of 10 (the degree certificate gives no percentage)
+    summary: >-
+      An undergraduate programme in the fundamentals of computer science and
+      application development.
   - school: Kalinga University
-    credential: Diploma in Computer Science
+    # The credential's full name as the certificate gives it.
+    credential: Diploma in Computer Science & Engineering (three years)
     start: 2018
     end: 2021
+    status: completed
+    # 81% per LinkedIn; "first division" per the certificate (17 Aug 2022).
+    grade: 81%, first division
+    summary: >-
+      Final-semester project: a program built on the Unity 3D platform that
+      presents 3D images on a solid surface.
 
 certifications:
+  # Verified 9 Oct 2026 against each public page, which is also the `url` a
+  # recruiter can open. Three dates differ from the résumé PDF, which still
+  # shows the earlier years: the verification pages are authoritative.
   - name: Advanced Certificate Programme in Data Science (specialisation in Natural Language Processing)
-    issuer: International Institute of Information Technology Bangalore
+    issuer: International Institute of Information Technology Bangalore, with upGrad
     date: 2025-10-28
-    verified: true # certificate on file, checked: names the NLP specialisation, dated 28 Oct 2025
+    verified: true # certificate on file and on Accredible (credential issued 13 Feb 2026)
+    url: https://www.credential.net/efab1f3c-19ad-47ea-bcd5-b5622395cf12
   - name: Foundations of Responsible AI
     issuer: Northeastern University
-    date: 2024
-    # TODO(owner): your MSc starts 2025 but this is dated 2024. Confirm the year or
-    # the issuer — the bot will be asked to reconcile your timeline and must not trip.
+    date: 2026-01-08 # issued 8 Jan 2026 per the badge page; the résumé said 2024
+    verified: true
+    url: https://northeastern.badges.parchment.com/public/credentials/2SwtDky4TfKybl6qu58mPA
   - name: AWS Cloud Technical Essentials
-    issuer: Amazon Web Services
-    date: 2023
+    issuer: Amazon Web Services (Coursera)
+    date: 2025-04-14 # per Coursera's verification page; the résumé said 2023
+    verified: true
+    url: https://www.coursera.org/account/accomplishments/verify/JBMZ4IGOS4R4
   - name: Foundations of Cybersecurity
-    issuer: Google
-    date: 2023
-  - name: Python Programming
+    issuer: Google (Coursera)
+    date: 2025-04-15 # per Coursera's verification page; the résumé said 2023
+    verified: true
+    url: https://www.coursera.org/account/accomplishments/verify/469LNC48LSDN
+  # The résumé lists this as "Python Programming, upGrad, 2022"; the owner
+  # confirmed on 9 Oct 2026 that it is this certificate, so that entry went.
+  - name: Python Bootcamp
     issuer: upGrad
-    date: 2022
+    date: 2025-03-31
+    verified: true # Accredible credential, issued 31 Mar 2025
+    url: https://www.credential.net/6242c219-ffe4-4a1b-9dca-a1bc4dffc231
 
 projects:
   - name: LR_Delivery_Time_Prediction

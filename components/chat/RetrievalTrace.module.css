@@ -1,0 +1,170 @@
+/*
+ * The retrieval pipeline while it runs, as a strip of stages in depth. The
+ * stage being worked on comes forward and is in focus; the ones still to
+ * come wait a little behind it, dimmer; finished ones settle back onto the
+ * card with their check and their measured time. A rail joins the stages
+ * and fills down to the current one, so the order reads as a pipeline.
+ */
+
+.area {
+  position: relative;
+}
+
+.live {
+  position: relative;
+  display: grid;
+  gap: 0.5rem;
+  padding-block: 0.25rem;
+  perspective: var(--depth-near);
+  perspective-origin: 0% 50%;
+
+  --progress: 0;
+}
+
+/* The rail, through the middle of every node: the track, then its fill. */
+.live::before,
+.live::after {
+  content: "";
+  position: absolute;
+  top: calc(0.25rem + 10px);
+  bottom: calc(0.25rem + 10px);
+  left: 7.5px;
+  width: 1px;
+  border-radius: 1px;
+}
+
+.live::before {
+  background-color: color-mix(in srgb, var(--rule-on-glass) 32%, transparent);
+}
+
+.live::after {
+  background-image: linear-gradient(to bottom, var(--brand-a), #3b9eff);
+  transform: scaleY(var(--progress));
+  transform-origin: top;
+  transition: transform 560ms var(--ease-spring);
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--ink-muted);
+  transform-origin: 0% 50%;
+  transition:
+    transform 620ms var(--ease-spring),
+    opacity 380ms var(--ease-out),
+    filter 380ms var(--ease-out),
+    color 380ms var(--ease-out);
+  animation: stage-in 640ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.stage[data-state="next"] {
+  opacity: 0.5;
+  filter: blur(0.4px);
+  transform: translateZ(-30px);
+}
+
+.stage[data-state="current"] {
+  transform: translateZ(10px);
+}
+
+.stage[data-state="done"] {
+  color: var(--ink);
+}
+
+/* The stages drop into their places from further back, one after another. */
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    transform: translateZ(-90px) rotateX(-38deg);
+  }
+}
+
+.node {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background-color: var(--glass-input);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rule-on-glass) 38%, transparent);
+  transition:
+    box-shadow 320ms var(--ease-out),
+    background-color 320ms var(--ease-out);
+}
+
+.stage[data-state="current"] .node {
+  box-shadow:
+    inset 0 0 0 1.5px var(--brand-a),
+    0 0 0 4px color-mix(in srgb, var(--brand-a) 14%, transparent);
+}
+
+.stage[data-state="current"] .node::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: var(--brand-a);
+  animation: node-beat 1.1s var(--ease-in-out) infinite alternate;
+}
+
+.stage[data-state="done"] .node {
+  color: #ffffff;
+  background-color: var(--brand-a);
+  background-image: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+  box-shadow: 0 3px 8px -3px var(--brand-glow);
+  animation: node-done 560ms var(--ease-pop);
+}
+
+@keyframes node-beat {
+  from {
+    scale: 0.6;
+    opacity: 0.6;
+  }
+}
+
+@keyframes node-done {
+  from {
+    scale: 0.45;
+  }
+}
+
+.ms {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  animation: ms-in 360ms var(--ease-out) backwards;
+}
+
+@keyframes ms-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+}
+
+:global(:root[data-motion="paused"]) .stage[data-state="current"] .node::after {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage[data-state="next"] {
+    filter: none;
+    transform: none;
+  }
+
+  .stage[data-state="current"] {
+    transform: none;
+  }
+}
+
+/* The summary's waterfall: its rows fall into place the same way. */
+.waterfall {
+  perspective: var(--depth-near);
+}

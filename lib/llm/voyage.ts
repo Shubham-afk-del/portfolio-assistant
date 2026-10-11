@@ -49,7 +49,7 @@ interface VoyageRerankResponse {
   data: { index: number; relevance_score: number }[];
 }
 
-async function post<T>(url: string, body: unknown, tokens: number): Promise<T> {
+async function post<T>(url: string, body: unknown, tokens: number, maxWaitMs?: number): Promise<T> {
   return throttled("voyage", tokens, async () => {
     const response = await fetch(url, {
       method: "POST",
@@ -70,13 +70,13 @@ async function post<T>(url: string, body: unknown, tokens: number): Promise<T> {
     }
 
     return (await response.json()) as T;
-  });
+  }, maxWaitMs);
 }
 
 export const voyage: LlmAdapter = {
   name: "voyage",
 
-  async embed({ input, inputType }: EmbedRequest): Promise<EmbedResult> {
+  async embed({ input, inputType, maxWaitMs }: EmbedRequest): Promise<EmbedResult> {
     const vectors: number[][] = [];
     let tokens = 0;
 
@@ -88,6 +88,7 @@ export const voyage: LlmAdapter = {
         EMBED_URL,
         { input: batch, model: MODELS.embed.model, input_type: inputType },
         batch.reduce((total, item) => total + estimateTokens(item), 0),
+        maxWaitMs,
       );
 
       for (const row of json.data) {
@@ -104,6 +105,7 @@ export const voyage: LlmAdapter = {
     return { vectors, tokens };
   },
 
+  // No `context`: a cross-encoder scores each (query, passage) pair as it is.
   async rerank({ query, documents, topK }: RerankRequest): Promise<RerankResult[]> {
     const json = await post<VoyageRerankResponse>(
       RERANK_URL,
