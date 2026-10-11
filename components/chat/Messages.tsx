@@ -243,10 +243,14 @@ export function AssistantTurn({
             )}
 
             {/* Once settled: where the sources sit among everything the
-              * assistant could have drawn on, beside the list of them. */}
+              * assistant could have drawn on, beside the list of them. On a
+              * phone the two stack in one column, and grid-cols-1 makes that
+              * column minmax(0, 1fr): an implicit grid column sizes to its
+              * widest content, and a source title held to one line made it
+              * about 750px wide on a 390px screen (seen on an iPhone). */}
             {!active && sources !== undefined && sources.hits.length > 0 && (
               <Opening delay={0.1} reduced={reduced}>
-                <div className="grid gap-4 pt-4 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:items-start">
+                <div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:items-start">
                   <m.div
                     initial={reduced ? false : { opacity: 0, y: 18, rotateX: 16, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
