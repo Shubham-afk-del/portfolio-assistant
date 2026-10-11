@@ -987,7 +987,7 @@ export function KnowledgeMap({
 
         {stage}
 
-        <figcaption className="grid gap-4 @xl:pt-1">
+        <figcaption className="grid grid-cols-1 gap-4 @xl:pt-1">
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 @xl:grid-cols-1">
             {legend.map(([heading, groups]) =>
               groups.length === 0 ? null : (
