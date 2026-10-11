@@ -2573,7 +2573,7 @@ function Galaxy({
 
   return (
     <div ref={root} className={cn(mapStyles.root, styles.galaxy)} data-ready={ready ? "" : undefined}>
-      <figure className="glass-inset grid gap-y-4 rounded-3xl p-4 sm:p-5">
+      <figure className="glass-inset grid grid-cols-1 gap-y-4 rounded-3xl p-4 sm:p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <p className="text-ink text-ui font-medium">What I can draw on</p>
           <p className="text-ink-muted text-micro tabular-nums">

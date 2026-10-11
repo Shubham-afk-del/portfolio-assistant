@@ -102,7 +102,9 @@ export function Welcome({ profile, corpus }: { profile: ProfileView; corpus: Cor
         <QuickContacts profile={profile} />
       </div>
 
-      <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] xl:items-start">
+      {/* grid-cols-1 below xl for the same reason as the sources grid under an
+        * answer: an implicit column would grow to its widest unwrapped content. */}
+      <div className="mt-7 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] xl:items-start">
         <section aria-labelledby="try-asking">
           <h3 id="try-asking" className="text-ink-muted mb-3 text-label font-medium">
             Try asking
