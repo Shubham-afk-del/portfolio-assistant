@@ -1,0 +1,83 @@
+/*
+ * Three motes on one orbit, seen from a little above, so the far side of the
+ * circle rides higher and smaller than the near side. Real 3D, not a drawn
+ * ellipse: each mote is turned round the vertical axis, pushed out along
+ * its radius, then turned back to face the reader, and perspective does the
+ * rest. It echoes the orbit round the assistant's orb, at the speed of a
+ * slow breath, which is all a wait needs.
+ */
+
+.orbit {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 26px;
+  height: 16px;
+  perspective: 80px;
+}
+
+.plane {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(-24deg);
+  transform-style: preserve-3d;
+}
+
+.mote {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0, transparent 55%), var(--brand-a);
+  box-shadow: 0 1px 4px -1px var(--brand-glow);
+  animation: orbit 2.4s linear infinite;
+}
+
+.mote:nth-child(2) {
+  background-color: #3b9eff;
+  animation-delay: -0.8s;
+}
+
+.mote:nth-child(3) {
+  background-color: #f5b83d;
+  animation-delay: -1.6s;
+}
+
+@keyframes orbit {
+  0% {
+    opacity: 1;
+    transform: rotateY(0deg) translateZ(9px) rotateY(0deg) rotateX(24deg);
+  }
+  50% {
+    opacity: 0.4;
+    transform: rotateY(180deg) translateZ(9px) rotateY(-180deg) rotateX(24deg);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(360deg) translateZ(9px) rotateY(-360deg) rotateX(24deg);
+  }
+}
+
+/* Perpetual, so it stops with the page's pause control. */
+:global(:root[data-motion="paused"]) .mote {
+  animation-play-state: paused;
+}
+
+/* Without motion the motes sit in a row: the negative delays would otherwise
+ * finish all three on the same spot. */
+@media (prefers-reduced-motion: reduce) {
+  .mote {
+    animation: none;
+  }
+
+  .mote:nth-child(1) {
+    transform: translateX(-8px);
+  }
+
+  .mote:nth-child(3) {
+    transform: translateX(8px);
+  }
+}

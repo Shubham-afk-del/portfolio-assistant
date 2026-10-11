@@ -1,0 +1,561 @@
+/*
+ * The composer: one floating piece of liquid glass. Back to front, a glow
+ * under the glass that swells with typing energy, the frosted fill, the row
+ * with the field and the send button, and the aurora ring on top. The field
+ * is two layers of its own: a mirror that draws the question, where each new
+ * letter blooms in, and the real textarea over it, which keeps the caret,
+ * selection, IME and accessibility but paints its own letters transparent.
+ */
+
+/* How fast the visitor is typing, 0 to 1, written from script on each
+ * keystroke. Registered so it transitions: the glow swells and settles
+ * instead of stepping, and inherited so every layer can read it. */
+@property --energy {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* 1 while the composer has focus. Registered for the same reason, so the
+ * glow and the ring fade with it rather than switching. */
+@property --engaged {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* How much of the ring has been drawn, from the left. */
+@property --draw {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+.wrap {
+  position: relative;
+  isolation: isolate;
+  --engaged: 0;
+  /* The colour a new letter arrives in before settling into ink: the brand
+   * indigo in light, and the lighter evidence indigo in dark, where the brand
+   * would be too dim on the dark glass to read as a colour at all. */
+  --bloom-from: light-dark(var(--brand-a), var(--evidence));
+  transition:
+    --engaged 420ms var(--ease-out),
+    --energy 450ms var(--ease-in-out);
+}
+
+.wrap:focus-within {
+  --engaged: 1;
+}
+
+/* Page load: the composer docks up from below the panel's edge, which clips
+ * it, and settles with the spring's last give, a beat after the island and
+ * the corner controls have arrived (Assistant.module.css). A transform and
+ * nothing else: the frost inside must never sit under a fading ancestor. */
+:global([data-entrance]) .wrap {
+  animation: dock-in 1050ms var(--ease-spring) 420ms backwards;
+}
+
+@keyframes dock-in {
+  from {
+    transform: translateY(calc(100% + 44px)) scale(0.97);
+  }
+}
+
+/* Rising energy follows the keys closely; falling energy takes its time. */
+.wrap[data-energy="up"] {
+  transition:
+    --engaged 420ms var(--ease-out),
+    --energy 240ms var(--ease-out);
+}
+
+/* ---------------------------------------------------------------------------
+ * The glow and the ring share one turning aurora. Each is a large square of
+ * conic gradient spun by transform inside a clipped box, rather than a
+ * gradient whose angle is animated, so the turn is a compositor rotation and
+ * script can reach the animation to change its playback rate.
+ * ------------------------------------------------------------------------- */
+
+.glow {
+  position: absolute;
+  inset: 20% 5% -14%;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 9999px;
+  filter: blur(22px);
+  opacity: calc(var(--engaged) * (0.22 + 0.36 * var(--energy)));
+  transform: scale(calc(0.96 + 0.05 * var(--energy)), calc(0.86 + 0.3 * var(--energy)));
+  pointer-events: none;
+}
+
+.swirl {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: conic-gradient(from 0deg, var(--aurora));
+  animation: turn 5s linear infinite;
+}
+
+/* Hidden while the composer is idle, so the turn stops costing anything.
+ * It also counts as perpetual motion, so it obeys the pause-motion setting. */
+.wrap:not(:focus-within) .swirl,
+:global(:root[data-motion="paused"]) .swirl {
+  animation-play-state: paused;
+}
+
+@keyframes turn {
+  to {
+    rotate: 1turn;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * The pill. Fully round while it holds one line (56px tall, 28px radius),
+ * easing to a 24px radius once the question wraps. The frost is a sibling
+ * of the content, never its ancestor, for the reason .glass-fill gives in
+ * app/globals.css, and the pill itself never fades, because opacity below 1
+ * would stop the frost seeing what is behind it.
+ * ------------------------------------------------------------------------- */
+
+.pill {
+  position: relative;
+  border-radius: 28px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule-on-glass) 38%, transparent),
+    0 1px 2px color-mix(in srgb, var(--glass-shadow) 45%, transparent),
+    0 18px 40px -22px var(--glass-shadow);
+  transition:
+    border-radius 420ms var(--ease-spring),
+    box-shadow 320ms var(--ease-out);
+}
+
+.pill[data-multiline] {
+  border-radius: 24px;
+}
+
+.wrap:focus-within .pill {
+  box-shadow:
+    0 0 0 1px transparent,
+    0 1px 2px color-mix(in srgb, var(--glass-shadow) 45%, transparent),
+    0 20px 44px -20px var(--brand-glow);
+}
+
+/* The glass: frost and tint, a specular line along the top edge, a sheen
+ * that fades down the first half, and a little depth pooled at the bottom. */
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--glass-border);
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--glass-highlight) 45%, transparent),
+      transparent 55%
+    ),
+    var(--glass-input);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    inset 0 -12px 22px -18px var(--glass-shadow);
+  pointer-events: none;
+}
+
+/*
+ * Refracting (Chromium), the frost also bends what passes behind its rim,
+ * through the lens in components/shell/LiquidGlass.tsx, so the tint moves
+ * inwards: 45% across the bevel, where the bend has to show, and a feathered
+ * core at 70% behind the text, which brings the middle to alpha 0.76 in
+ * light and 0.71 in dark: above the panels' 0.60 and 0.55, against which
+ * the placeholder's contrast was measured, and over a panel besides.
+ */
+.fill[data-refract] {
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--glass-highlight) 45%, transparent),
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--glass-input) 45%, transparent);
+}
+
+.core {
+  display: none;
+}
+
+.fill[data-refract] + .core {
+  position: absolute;
+  inset: 8px;
+  display: block;
+  border-radius: inherit;
+  background-color: color-mix(in srgb, var(--glass-input) 70%, transparent);
+  box-shadow: 0 0 6px 3px color-mix(in srgb, var(--glass-input) 70%, transparent);
+  pointer-events: none;
+}
+
+/* The pointer light, as on the island: faint at the top left at rest, and
+ * following the pointer across the glass (usePointerLight sets the
+ * properties and data-lit on the pill). */
+.light {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--lg-x, 18%) var(--lg-y, 0%),
+    light-dark(rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.12)) 0,
+    transparent 90px
+  );
+  opacity: 0.5;
+  transition: opacity 320ms var(--ease-out);
+  pointer-events: none;
+}
+
+.pill[data-lit] > .light {
+  opacity: 1;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .light {
+    display: none;
+  }
+}
+
+/* The aurora ring. Three mask layers: a left-to-right reveal, intersected
+ * with the usual border-box minus content-box ring. On focus the reveal runs
+ * from the start of the text toward the send button; on blur the ring fades
+ * with --engaged, and the reveal resets once it is out of sight. */
+.ring {
+  position: absolute;
+  inset: -1px;
+  overflow: hidden;
+  border-radius: inherit;
+  padding: 1.5px;
+  -webkit-mask:
+    linear-gradient(90deg, #000 calc(var(--draw) - 16%), transparent var(--draw)),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: source-in, xor;
+  mask:
+    linear-gradient(90deg, #000 calc(var(--draw) - 16%), transparent var(--draw)),
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: intersect, exclude;
+  opacity: calc(var(--engaged) * (0.78 + 0.22 * var(--energy)));
+  pointer-events: none;
+  transition: --draw 0s linear 420ms;
+}
+
+.wrap:focus-within .ring {
+  --draw: 116%;
+  transition: --draw 1100ms var(--ease-out);
+}
+
+/* ---------------------------------------------------------------------------
+ * The field. Everything that moves a glyph must be identical on the textarea
+ * and the mirror, or the caret drifts away from the letters it sits between:
+ * font size and line height come from the same utility classes on both, and
+ * the rest is pinned here rather than left to two different UA defaults.
+ * ------------------------------------------------------------------------- */
+
+.field {
+  position: relative;
+}
+
+.text {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  word-spacing: normal;
+  text-indent: 0;
+  text-transform: none;
+  text-align: start;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  tab-size: 4;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.input {
+  position: relative;
+  z-index: 1;
+  caret-color: var(--evidence);
+}
+
+/* text-fill-color rather than color: the caret follows color, so it stays
+ * visible while the letters themselves are left to the mirror. */
+.field[data-bloom] > .input {
+  -webkit-text-fill-color: transparent;
+}
+
+/* A translucent selection, so the mirror's letters show through it. */
+.field[data-bloom] > .input::selection {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-color: color-mix(in srgb, var(--brand-a) 26%, transparent);
+}
+
+.mirror {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* A letter arriving: out of focus and in the brand colour, with a brief
+ * halo, settling into ink. It is the same idea as an answer's words inking
+ * in (see .word in app/globals.css), made quicker to keep up with typing.
+ * Inline spans cannot be transformed, so it blooms in place, never rises. */
+.letter {
+  animation: letter-in 300ms var(--ease-out) backwards;
+}
+
+/* A paste arrives as one piece with a single fade: a paragraph blooming
+ * letter by letter would take seconds and read as a glitch. */
+.paste {
+  animation: paste-in 250ms var(--ease-out) backwards;
+}
+
+@keyframes letter-in {
+  0% {
+    opacity: 0;
+    filter: blur(3px);
+    color: var(--bloom-from);
+    text-shadow: 0 0 10px var(--brand-glow);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    text-shadow: 0 0 0 transparent;
+  }
+}
+
+@keyframes paste-in {
+  from {
+    opacity: 0;
+    color: var(--bloom-from);
+  }
+}
+
+/* The mirror is decoration over a working textarea. With colours forced or
+ * motion reduced it steps aside and the textarea draws its own text, as any
+ * plain field would. Script stops rendering it in both cases too; this rule
+ * covers the first paint, before script has looked. */
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .mirror {
+    display: none;
+  }
+
+  .field[data-bloom] > .input {
+    -webkit-text-fill-color: currentcolor;
+  }
+
+  .field[data-bloom] > .input::selection {
+    color: var(--ink);
+    -webkit-text-fill-color: currentcolor;
+  }
+}
+
+@media (forced-colors: active) {
+  .glow,
+  .ring,
+  .sparks {
+    display: none;
+  }
+}
+
+/* The placeholder returns a beat after the field empties, so the words of a
+ * question that has just been sent lift off a clean field instead of
+ * crossing the placeholder on their way out. */
+.placeholder {
+  animation: placeholder-in 420ms var(--ease-out) 260ms backwards;
+}
+
+@keyframes placeholder-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* The placeholder's caret. Once the field has focus the real caret is
+ * blinking at the start of it, and two carets would compete. */
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: -0.2em;
+  border-radius: 1px;
+  background-color: var(--evidence);
+  animation: blink 1s steps(1, end) infinite;
+}
+
+.field:focus-within .caret {
+  visibility: hidden;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Send. Muted until there is something to send, then the brand gradient with
+ * a specular top edge to match the glass. While an answer arrives it becomes
+ * a stop button: the arrow leaves upward, a stop square pops in, and a
+ * spinner turns round the outside.
+ * ------------------------------------------------------------------------- */
+
+.send {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  color: var(--ink-muted);
+  background-color: var(--sunken);
+  transform: scale(0.9);
+  transition:
+    transform 640ms var(--ease-pop),
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out),
+    box-shadow 300ms var(--ease-out);
+}
+
+/* A 44px hit area around the 40px button. */
+.send::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+}
+
+.send[data-state="ready"],
+.send[data-state="busy"] {
+  color: #ffffff;
+  background-color: var(--brand-a);
+  background-image: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+  transform: scale(1);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.24),
+    0 10px 24px -10px var(--brand-glow);
+}
+
+.send[data-state="ready"]:hover {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.24),
+    0 12px 28px -8px var(--brand-glow);
+}
+
+.send[data-state="ready"]:active {
+  transform: scale(0.94);
+  transition-duration: 120ms;
+}
+
+/* The ring that leaves the button on send (Composer.tsx animates it). */
+.pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    0 0 0 1.5px var(--brand-a),
+    0 0 12px 1px var(--brand-glow);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The burst that leaves the button on send (Composer.tsx animates it). Each
+ * spark is a short streak whose inner end sits on the centre of the button,
+ * so a rotation points it along its spoke and a translation sends it out. */
+.sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 2px;
+  background-color: currentcolor;
+  box-shadow: 0 0 6px currentcolor;
+  opacity: 0;
+  transform-origin: 0 50%;
+}
+
+/* Round the aurora: indigo (lighter in dark, where the brand would sink
+ * into the glass), azure, amber, coral. */
+.spark:nth-child(4n + 1) {
+  color: light-dark(#4058e0, #8b9bff);
+}
+
+.spark:nth-child(4n + 2) {
+  color: #3b9eff;
+}
+
+.spark:nth-child(4n + 3) {
+  color: #f5b83d;
+}
+
+.spark:nth-child(4n + 4) {
+  color: #f97352;
+}
+
+.spinner {
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, transparent 0 62%, var(--brand-a) 85%, #3b9eff);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+  animation: spinner 900ms linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    rotate: 1turn;
+  }
+}
+
+.arrow {
+  transition:
+    transform 420ms var(--ease-out),
+    opacity 200ms var(--ease-out);
+}
+
+.send[data-state="busy"] .arrow {
+  opacity: 0;
+  transform: translateY(-150%);
+  transition:
+    transform 260ms var(--ease-in),
+    opacity 180ms var(--ease-in);
+}
+
+.stop {
+  opacity: 0;
+  transform: scale(0.3);
+  transition:
+    transform 640ms var(--ease-pop),
+    opacity 200ms var(--ease-out);
+}
+
+.send[data-state="busy"] .stop {
+  opacity: 1;
+  transform: scale(1);
+}

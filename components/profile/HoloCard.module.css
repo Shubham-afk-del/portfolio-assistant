@@ -1,0 +1,902 @@
+/*
+ * The holographic ID card (HoloCard.tsx), built as a small 3D scene:
+ *
+ *   .root      perspective; the entrance fades it (safe: it is not 3D itself)
+ *   .shadow    the card's shadow on the panel, flat, behind the scene
+ *   .deal      the entrance: the card is dealt onto the panel
+ *   .float     the idle drift: a slow precession and a bob
+ *   .card      the lean, the turn and the lift, written by springs in script
+ *   .face      front and back, each a stack of full-size .layer elements
+ *
+ * Every element from .deal down to .face keeps transform-style: preserve-3d,
+ * which means none of them may carry overflow, opacity, filter, mask,
+ * clip-path, isolation or a blend mode: any of those flattens the scene, and
+ * the back face would then show through the front, mirrored. Clipping,
+ * blending and fades all live on the layers, which are the leaves.
+ *
+ * The script writes the light's position to --holo-x and --holo-y (0 to
+ * 100 across the card) and its presence to --holo-o (0 to 1). The foil, the
+ * window's rim and the seal are painted from those.
+ */
+
+.root {
+  --p: 1100;
+  --holo-x: 50;
+  --holo-y: 50;
+  --holo-o: 0;
+
+  position: relative;
+  container-type: inline-size;
+  perspective: calc(var(--p) * 1px);
+  -webkit-tap-highlight-color: transparent;
+
+  /* The front plate is platinum in the light theme and midnight in the dark,
+   * so the card is a physical object in either rather than a hole in the
+   * panel. The back is always the dark brand plate. */
+  --plate-a: light-dark(#f2f4f9, #1e2648);
+  --plate-b: light-dark(#d6dbe7, #0b0f22);
+  --plate-ink: light-dark(#0f141c, #f2f4fa);
+  --plate-muted: light-dark(#445064, #b7c1d5);
+  --plate-shine: light-dark(rgb(255 255 255 / 0.95), rgb(140 160 255 / 0.16));
+  --plate-edge: light-dark(rgb(15 20 40 / 0.1), rgb(255 255 255 / 0.08));
+  --glare-peak: 0.56;
+}
+
+/* light-dark() takes colours only, so the glare's strength is set per theme. */
+:global([data-theme="dark"]) .root {
+  --glare-peak: 0.44;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme])) .root {
+    --glare-peak: 0.44;
+  }
+}
+
+.deal,
+.float,
+.card {
+  display: grid;
+  transform-style: preserve-3d;
+}
+
+/* -------------------------------------------------------------------------
+ * Faces and layers
+ * ----------------------------------------------------------------------- */
+
+/* Both faces share one grid cell, so the card is as tall as the taller of
+ * the two; on the front, the photograph takes any difference. */
+.face {
+  grid-area: 1 / 1;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.front {
+  grid-template-rows: 1fr auto;
+  color: var(--plate-ink);
+}
+
+.back {
+  grid-template-rows: 1fr;
+  color: #ffffff;
+  transform: rotateY(180deg);
+}
+
+/*
+ * A layer covers its whole face and stands --z px off the plate. Under the
+ * root's perspective that would also make it look larger, by p / (p - z), so
+ * it is scaled back by (p - z) / p about the face's centre, which is the
+ * vanishing point: at rest every layer lands exactly where it is laid out,
+ * and the depth only shows as parallax once the card leans. Subgrid gives
+ * every layer the face's two rows, photograph and band, so content on
+ * different layers lines up without anyone measuring anything.
+ *
+ * Each layer is a leaf of the 3D scene, so it hides its own back. Layers let
+ * the pointer through unless they hold something to press or select.
+ */
+.layer {
+  --z: 0;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: subgrid;
+  border-radius: 20px;
+  pointer-events: none;
+  transform: translateZ(calc(var(--z) * 1px)) scale(calc(1 - var(--z) / var(--p)));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* -------------------------------------------------------------------------
+ * The front: plate, photograph, type, laminate, chip, control
+ * ----------------------------------------------------------------------- */
+
+.plate {
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 70% at 0% 0%, var(--plate-shine), transparent 62%),
+    linear-gradient(160deg, var(--plate-a), var(--plate-b));
+  box-shadow:
+    0 1px 2px rgb(10 14 30 / 0.14),
+    0 26px 46px -26px var(--glass-shadow);
+}
+
+/* The plate's edge, drawn over its foil so the rim stays crisp. */
+.plate::after,
+.backPlate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 0 var(--plate-shine),
+    inset 0 0 0 1px var(--plate-edge);
+  pointer-events: none;
+}
+
+.photo {
+  --z: 20;
+}
+
+/* The window's height follows the card's width at 5:4, written in container
+ * units rather than as an aspect ratio so it can also stretch: if the back
+ * ever needs more height than the front, the window takes the difference,
+ * never the band. */
+.window {
+  grid-row: 1;
+  position: relative;
+  min-height: calc((100cqw - 14px) * 0.8);
+  margin: 7px 7px 0;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 14px;
+  background-color: #77797f;
+  box-shadow: 0 14px 24px -16px rgb(4 8 24 / 0.6);
+}
+
+/* A soft shade along the bottom, above the photo, so the location chip has
+ * something to sit on and the window reads as set into the plate. */
+.window::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 -64px 52px -44px rgb(4 6 16 / 0.6);
+  pointer-events: none;
+}
+
+/* The window's edge, foil-stamped: a thin ring of the brand colours that
+ * turns with the light. */
+.window::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from calc(var(--holo-x) * 2.4deg + 210deg),
+    #4058e0,
+    #3b9eff,
+    #eef1f6,
+    #f5b83d,
+    #f97352,
+    #4058e0
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: calc(0.55 + var(--holo-o) * 0.35);
+  pointer-events: none;
+}
+
+.reveal {
+  position: absolute;
+  inset: 0;
+}
+
+/* The photograph bleeds 10px past the window on every side, which is room
+ * for its drift against the lean. */
+.drift {
+  position: absolute;
+  inset: -10px;
+}
+
+.type {
+  --z: 28;
+  transform-style: preserve-3d;
+  pointer-events: auto;
+}
+
+/* The band hugs its type. The seal stands a further 12px off it: a
+ * holographic sticker on the laminate rather than ink in the plate. */
+.band {
+  grid-row: 2;
+  position: relative;
+  padding: 12px 15px;
+  transform-style: preserve-3d;
+}
+
+.bandText {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.band > .bandSeal {
+  position: absolute;
+  top: 9px;
+  right: 15px;
+  transform: translateZ(12px);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.chipLayer {
+  --z: 42;
+}
+
+.chip {
+  grid-row: 1;
+  align-self: end;
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 9px 16px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.24);
+  background-color: rgb(8 10 24 / 0.42);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+  color: #ffffff;
+  box-shadow: 0 8px 16px -8px rgb(0 0 0 / 0.5);
+}
+
+/* The laminate: the card's top coat, which is where the light lands. */
+.gloss {
+  --z: 34;
+  overflow: hidden;
+}
+
+/* A still reflection along the top edge, so the coat reads as glass even
+ * with no pointer over it, as on a phone. */
+.gloss::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    168deg,
+    rgb(255 255 255 / 0.16) 0%,
+    rgb(255 255 255 / 0.05) 16%,
+    transparent 30%
+  );
+}
+
+/* The glare: a hot point with a broad falloff, twice the card's size and
+ * moved by transform, so following the pointer never repaints it. */
+.glare {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 255 255 / var(--glare-peak)) 0%,
+    rgb(255 255 255 / calc(var(--glare-peak) * 0.55)) 5%,
+    rgb(255 255 255 / calc(var(--glare-peak) * 0.22)) 16%,
+    rgb(255 255 255 / calc(var(--glare-peak) * 0.07)) 34%,
+    rgb(255 255 255 / 0) 56%
+  );
+  opacity: 0;
+}
+
+.sheen,
+.glint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    104deg,
+    transparent 28%,
+    rgb(255 255 255 / 0.46) 46%,
+    rgb(255 255 255 / 0.14) 53%,
+    transparent 68%
+  );
+  opacity: 0;
+}
+
+.controls {
+  --z: 50;
+}
+
+.flip {
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 14px 14px 0 0;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.3);
+  background-color: rgb(8 10 24 / 0.38);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
+  color: #ffffff;
+  pointer-events: auto;
+  box-shadow: 0 8px 16px -8px rgb(0 0 0 / 0.5);
+  transition:
+    background-color 200ms var(--ease-out),
+    transform 520ms var(--ease-pop);
+}
+
+.flip:active {
+  transform: scale(0.9);
+  transition-duration: 120ms;
+}
+
+/* The global focus ring is the evidence colour, which is too close in value
+ * to the studio grey behind this button; white with a dark halo reads on
+ * the photograph and on the back plate alike. */
+.flip:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgb(8 10 24 / 0.55);
+}
+
+/* -------------------------------------------------------------------------
+ * The back
+ * ----------------------------------------------------------------------- */
+
+.backPlate {
+  overflow: hidden;
+  isolation: isolate;
+  --plate-shine: rgb(255 255 255 / 0.16);
+  --plate-edge: rgb(255 255 255 / 0.06);
+  /* The foil sheen is one still band in the plate itself. A repeating band
+   * driven by the pointer, as on the front, was measured to stall
+   * rasterising the back in headless Chrome for as long as it showed. */
+  background:
+    linear-gradient(
+      112deg,
+      transparent 18%,
+      rgb(59 158 255 / 0.1) 36%,
+      rgb(245 184 61 / 0.08) 50%,
+      rgb(249 115 82 / 0.07) 58%,
+      transparent 74%
+    ),
+    radial-gradient(110% 70% at 0% 0%, rgb(110 135 255 / 0.26), transparent 58%),
+    radial-gradient(90% 70% at 100% 100%, rgb(59 158 255 / 0.16), transparent 62%),
+    linear-gradient(158deg, #26329a 0%, #161d58 44%, #090c1e 100%);
+  box-shadow:
+    0 1px 2px rgb(10 14 30 / 0.2),
+    0 26px 46px -26px var(--glass-shadow);
+}
+
+/* The back's content is one layer standing off the plate. It is in flow, so
+ * it sets the back's height. */
+.backContent {
+  --z: 22;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 16px;
+  pointer-events: auto;
+}
+
+.back .flip {
+  background-color: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.22);
+}
+
+.action {
+  transition:
+    transform 420ms var(--ease-spring),
+    background-color 200ms var(--ease-out),
+    box-shadow 300ms var(--ease-out);
+}
+
+.actionSolid {
+  box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.6);
+}
+
+.actionIcon {
+  transition: transform 420ms var(--ease-pop);
+}
+
+.action:active {
+  transform: scale(0.97);
+  transition-duration: 120ms;
+}
+
+.action:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .flip:hover {
+    background-color: rgb(8 10 24 / 0.58);
+    transform: rotate(-24deg);
+  }
+
+  .back .flip:hover {
+    background-color: rgb(255 255 255 / 0.18);
+  }
+
+  .action:hover {
+    transform: translateY(-2px);
+  }
+
+  .actionGlass:hover {
+    background-color: rgb(255 255 255 / 0.16);
+  }
+
+  .actionSolid:hover {
+    box-shadow: 0 14px 26px -12px rgb(0 0 0 / 0.7);
+  }
+
+  .actionSolid:hover .actionIcon {
+    transform: translateY(2px);
+  }
+
+  .actionGlass:hover .actionIcon {
+    transform: scale(1.12) rotate(-6deg);
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Foil
+ * ----------------------------------------------------------------------- */
+
+/*
+ * The foil: bands of the brand colours (indigo, azure, gold, coral, with a
+ * silver return) under a fine diffraction line. The light moves the bands by
+ * offsetting their colour stops rather than the background position, because
+ * a repeating gradient tiled at an angle shows a seam at every tile edge,
+ * and an offset stop never does.
+ */
+.foil {
+  --shift: calc(var(--holo-x) * 2.4px + var(--holo-y) * 1.2px);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      -58deg,
+      rgb(255 255 255 / 0) 0 2px,
+      rgb(255 255 255 / 0.26) 2px 3px
+    ),
+    repeating-linear-gradient(
+      112deg,
+      #4058e0 calc(var(--shift) + 0px),
+      #3b9eff calc(var(--shift) + 60px),
+      #e9edf3 calc(var(--shift) + 104px),
+      #f5b83d calc(var(--shift) + 150px),
+      #f97352 calc(var(--shift) + 196px),
+      #4058e0 calc(var(--shift) + 252px)
+    );
+}
+
+/*
+ * How much foil shows is the mask's alpha: a resting level everywhere, plus
+ * a pool around the light that grows with its presence, the way a hologram
+ * only lights up where the light catches it.
+ */
+.plateFoil {
+  z-index: 0;
+  mix-blend-mode: overlay;
+  --spot: radial-gradient(
+    circle 52cqw at calc(var(--holo-x) * 1%) calc(var(--holo-y) * 1%),
+    rgb(0 0 0 / calc(var(--holo-o) * var(--foil-spot))),
+    transparent
+  );
+  --rest: linear-gradient(rgb(0 0 0 / var(--foil-rest)), rgb(0 0 0 / var(--foil-rest)));
+  --foil-rest: 0.5;
+  --foil-spot: 0.5;
+  -webkit-mask-image: var(--spot), var(--rest);
+  -webkit-mask-composite: source-over;
+  mask-image: var(--spot), var(--rest);
+  mask-composite: add;
+}
+
+/* Screen on the midnight plate turns the same bands into coloured light,
+ * where overlay would sink into the dark and vanish. */
+:global([data-theme="dark"]) .plateFoil {
+  mix-blend-mode: screen;
+  --foil-rest: 0.13;
+  --foil-spot: 0.22;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme])) .plateFoil {
+    mix-blend-mode: screen;
+    --foil-rest: 0.13;
+    --foil-spot: 0.22;
+  }
+}
+
+/*
+ * Inside the window the foil is masked off the face. The first two layers
+ * clear the head, from the hair to the beard, and the neck; what can show is
+ * the studio backdrop at the corners and the suit, faintly at rest and more
+ * where the light is. The foil drifts with the photograph, so the masks stay
+ * on the face as it moves. The light is in card coordinates, so it is mapped
+ * into the photograph's box, which starts 3px left of and above the card
+ * (the window's 7px inset, less the 10px bleed): across exactly with the
+ * container width, and down with the window's height plus the band's, which
+ * is close enough for a pool of light this soft.
+ */
+.photoFoil {
+  --px: calc(var(--holo-x) * 1cqw + 3px);
+  --py: calc(var(--holo-y) * ((100cqw - 14px) / 125 + 0.99px) + 3px);
+  --head: radial-gradient(ellipse 30% 58% at 53.5% 43%, transparent 70%, #000 100%);
+  --neck: radial-gradient(ellipse 18% 22% at 53.5% 100%, transparent 64%, #000 100%);
+  --spot: radial-gradient(
+    circle 48cqw at var(--px) var(--py),
+    rgb(0 0 0 / calc(var(--holo-o) * 0.75)),
+    transparent
+  );
+  --rest: radial-gradient(ellipse 74% 74% at 50% 50%, transparent 58%, rgb(0 0 0 / 0.5));
+  z-index: 2;
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  -webkit-mask-image: var(--head), var(--neck), var(--spot), var(--rest);
+  -webkit-mask-composite: source-in, source-in, source-over;
+  mask-image: var(--head), var(--neck), var(--spot), var(--rest);
+  mask-composite: intersect, intersect, add;
+}
+
+/* Security printing: two families of fine rings whose interference draws
+ * the moiré a banknote uses, at a strength that reads as texture. On the
+ * front it sits under the band; on the back it covers the plate. */
+.guilloche {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(circle at 0% 100%, transparent 0 5px, var(--guilloche-ink) 5px 6px),
+    repeating-radial-gradient(circle at 100% 0%, transparent 0 5px, var(--guilloche-ink) 5px 6px);
+}
+
+.plate .guilloche {
+  --guilloche-ink: light-dark(rgb(64 88 224 / 0.07), rgb(160 180 255 / 0.06));
+  top: auto;
+  height: 40%;
+  -webkit-mask-image: linear-gradient(to top, #000 40%, transparent);
+  mask-image: linear-gradient(to top, #000 40%, transparent);
+}
+
+.backPlate .guilloche {
+  --guilloche-ink: rgb(255 255 255 / 0.05);
+}
+
+/* -------------------------------------------------------------------------
+ * The seal: an S blind-embossed into a disc whose rim is a ring of
+ * holographic spokes. The rim's colours turn with the light.
+ * ----------------------------------------------------------------------- */
+
+.seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--seal, 32px);
+  height: var(--seal, 32px);
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 35% 28%,
+    light-dark(#ffffff, #2c3566),
+    light-dark(#cfd5e3, #11162e)
+  );
+  box-shadow:
+    inset 0 1px 1px light-dark(rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.18)),
+    inset 0 -1px 1px light-dark(rgb(15 20 40 / 0.16), rgb(0 0 0 / 0.55)),
+    0 1px 2px light-dark(rgb(15 20 40 / 0.12), rgb(0 0 0 / 0.45)),
+    0 6px 12px -6px light-dark(rgb(15 20 40 / 0.35), rgb(0 0 0 / 0.6));
+}
+
+.seal::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from calc(var(--holo-x) * 3.6deg),
+    #4058e0,
+    #3b9eff,
+    #f5b83d,
+    #f97352,
+    #4058e0
+  );
+  -webkit-mask-image:
+    radial-gradient(closest-side, transparent 72%, #000 74% 94%, transparent 97%),
+    repeating-conic-gradient(#000 0 2.2deg, transparent 2.2deg 7.5deg);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(closest-side, transparent 72%, #000 74% 94%, transparent 97%),
+    repeating-conic-gradient(#000 0 2.2deg, transparent 2.2deg 7.5deg);
+  mask-composite: intersect;
+  opacity: 0.85;
+}
+
+.sealGlyph {
+  position: relative;
+  font-family: var(--font-prose);
+  font-weight: 600;
+  font-size: calc(var(--seal, 32px) * 0.56);
+  line-height: 1;
+  color: light-dark(#c3cad9, #2b3567);
+  text-shadow:
+    0 -1px 0 light-dark(rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.3)),
+    0 1px 0 light-dark(rgb(20 30 70 / 0.28), rgb(0 0 0 / 0.75));
+}
+
+.back .seal {
+  background: radial-gradient(circle at 35% 28%, #3a48b8, #141a52);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.22),
+    inset 0 -1px 1px rgb(0 0 0 / 0.5),
+    0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+.back .sealGlyph {
+  color: #2a3591;
+  text-shadow:
+    0 -1px 0 rgb(255 255 255 / 0.22),
+    0 1px 0 rgb(0 0 0 / 0.6);
+}
+
+/* -------------------------------------------------------------------------
+ * The shadow on the panel. Flat and outside the scene, so it stays on the
+ * panel while the card moves above it; the script offsets, spreads and
+ * fades it with the lean and the lift.
+ * ----------------------------------------------------------------------- */
+
+.shadow {
+  position: absolute;
+  right: 8%;
+  bottom: -16px;
+  left: 8%;
+  height: 42%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--shadow-ink), transparent);
+  pointer-events: none;
+  --shadow-ink: light-dark(rgb(36 48 104 / 0.28), rgb(0 0 0 / 0.6));
+}
+
+/* -------------------------------------------------------------------------
+ * Motion that plays by itself: the entrance and the idle drift. All of it
+ * sits behind no-preference, so reduced motion gets a still card, and the
+ * idle drift also stops for the pause control and while a pointer is on the
+ * card, where the pointer's own lean takes over.
+ * ----------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A slow precession, the lean circling round once every 18 seconds, under
+   * a bob on a different period so the two never quite repeat together.
+   * Individual transform properties, so the compositor runs it: the
+   * layers' depths turn it into parallax without a single repaint. */
+  .float {
+    animation:
+      holo-precess 18s linear infinite,
+      holo-bob 7s var(--ease-in-out) infinite;
+  }
+
+  .shadow {
+    animation: holo-shadow 7s var(--ease-in-out) infinite;
+  }
+
+  .root[data-active] .float,
+  .root[data-active] .shadow,
+  :global(:root[data-motion="paused"]) .float,
+  :global(:root[data-motion="paused"]) .shadow {
+    animation-play-state: paused;
+  }
+
+  /* The card is dealt onto the panel: it swings up out of the panel's depth
+   * and settles on the spring. The root fades rather than the card, because
+   * an opacity on any element of the scene would flatten it mid-flight. */
+  :global([data-entrance]) .sidebar,
+  .sheet {
+    animation: holo-fade 560ms var(--ease-out) backwards;
+  }
+
+  :global([data-entrance]) .sidebar .deal,
+  .sheet .deal {
+    animation: holo-deal 1300ms var(--ease-spring) backwards;
+  }
+
+  .sheet,
+  .sheet .deal {
+    animation-delay: 140ms;
+  }
+
+  /* The photograph develops into its window as the card lands. */
+  :global([data-entrance]) .sidebar .reveal,
+  .sheet .reveal {
+    animation: holo-wipe 1100ms var(--ease-out) backwards;
+    animation-delay: 160ms;
+  }
+
+  :global([data-entrance]) .sidebar .reveal img,
+  .sheet .reveal img {
+    animation: holo-settle 1500ms var(--ease-out) backwards;
+    animation-delay: 160ms;
+  }
+
+  .sheet .reveal,
+  .sheet .reveal img {
+    animation-delay: 260ms;
+  }
+
+  :global([data-entrance]) .sidebar .bandText,
+  .sheet .bandText {
+    animation: holo-rise 700ms var(--ease-out) backwards;
+    animation-delay: 420ms;
+  }
+
+  /* The seal is stamped on last. */
+  :global([data-entrance]) .sidebar .bandSeal,
+  .sheet .bandSeal {
+    animation: holo-stamp 760ms var(--ease-pop) backwards;
+    animation-delay: 720ms;
+  }
+
+  /* One glint across the laminate once the card has landed. It ends where
+   * it started, invisible, so nothing is left running or held. */
+  :global([data-entrance]) .sidebar .glint,
+  .sheet .glint {
+    animation: holo-glint 1300ms var(--ease-in-out) backwards;
+    animation-delay: 1050ms;
+  }
+
+  .sheet .bandText {
+    animation-delay: 480ms;
+  }
+
+  .sheet .bandSeal {
+    animation-delay: 760ms;
+  }
+
+  .sheet .glint {
+    animation-delay: 900ms;
+  }
+}
+
+@keyframes holo-precess {
+  0% {
+    rotate: 1 0 0 2.2deg;
+  }
+  12.5% {
+    rotate: 0.7071 0.7071 0 2.2deg;
+  }
+  25% {
+    rotate: 0 1 0 2.2deg;
+  }
+  37.5% {
+    rotate: -0.7071 0.7071 0 2.2deg;
+  }
+  50% {
+    rotate: -1 0 0 2.2deg;
+  }
+  62.5% {
+    rotate: -0.7071 -0.7071 0 2.2deg;
+  }
+  75% {
+    rotate: 0 -1 0 2.2deg;
+  }
+  87.5% {
+    rotate: 0.7071 -0.7071 0 2.2deg;
+  }
+  100% {
+    rotate: 1 0 0 2.2deg;
+  }
+}
+
+@keyframes holo-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -3px;
+  }
+}
+
+/* As the card rises on its bob, its shadow tightens. Scale is its own
+ * property, so this composes with the script's transform. */
+@keyframes holo-shadow {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 0.95;
+  }
+}
+
+@keyframes holo-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes holo-deal {
+  from {
+    transform: translate3d(0, 36px, -190px) rotateX(30deg) rotateY(-22deg) rotateZ(-4deg);
+  }
+}
+
+@keyframes holo-wipe {
+  from {
+    clip-path: inset(100% 0 0 0 round 14px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 14px);
+  }
+}
+
+@keyframes holo-settle {
+  from {
+    transform: scale(1.14);
+  }
+}
+
+@keyframes holo-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes holo-stamp {
+  from {
+    opacity: 0;
+    transform: translateZ(12px) scale(0.3) rotate(-140deg);
+  }
+}
+
+@keyframes holo-glint {
+  from {
+    opacity: 1;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(100%);
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Reduced motion: no lean and no turn. The faces swap in place, and the
+ * script cross-fades them.
+ * ----------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .back {
+    transform: none;
+  }
+
+  .root:not([data-flipped]) .back,
+  .root[data-flipped] .front {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

@@ -1,0 +1,272 @@
+/*
+ * The status island: a pill of liquid glass that floats over the top of the
+ * transcript. Its width follows its content, animated from StatusIsland.tsx,
+ * so it overflows nothing: what is not yet revealed while it grows is
+ * clipped by the pill. Layered as components, so className utilities win.
+ */
+
+@layer components {
+  .island {
+    --island-h: 3.25rem;
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    min-height: var(--island-h);
+    overflow: hidden;
+    padding: 0;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      box-shadow 420ms var(--ease-out),
+      transform 640ms var(--ease-pop);
+  }
+
+  /* Working: the glass picks up a little of the brand's light. */
+  .island[data-busy] {
+    --lg-glow: 0 10px 32px -14px var(--brand-glow);
+  }
+
+  @media (hover: hover) {
+    button.island:hover {
+      --lg-glow: 0 12px 30px -12px var(--brand-glow);
+    }
+  }
+
+  button.island:active {
+    transform: scale(0.97);
+    transition-duration: 120ms;
+  }
+
+  /*
+   * Page load, where the head script allows entrances: the island arrives as
+   * the orb alone, a small round drop of glass that pops into place, then
+   * opens out sideways to fit its words, which come into focus once there is
+   * room for them. Width can only spring to fit-content where the browser
+   * interpolates to it; elsewhere the island pops in at its full width. The
+   * glass itself may fade; its wrapper in Assistant.tsx never does.
+   */
+  :global([data-entrance]) .island.enter {
+    animation: island-pop 640ms var(--ease-pop) 200ms backwards;
+  }
+
+  @supports (interpolate-size: allow-keywords) {
+    .island.enter {
+      interpolate-size: allow-keywords;
+    }
+
+    :global([data-entrance]) .island.enter {
+      animation:
+        island-pop 640ms var(--ease-pop) 200ms backwards,
+        island-open 860ms var(--ease-spring) 440ms backwards;
+    }
+  }
+
+  :global([data-entrance]) .island.enter .text {
+    animation: island-words 560ms var(--ease-out) 640ms backwards;
+  }
+
+  .row {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+  }
+
+  /* A square the height of the pill, so whatever sits in it is inset equally
+   * on three sides and its corners run concentric with the pill's. */
+  .leading {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: calc(var(--island-h) - 2px);
+    height: calc(var(--island-h) - 2px);
+  }
+
+  /* The right padding keeps the text clear of the refracting rim. */
+  .text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 0 1.25rem 0 0.125rem;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 0.4375rem;
+    min-width: 0;
+  }
+
+  .dot {
+    position: relative;
+    flex: none;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background-color: var(--online);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--online) 20%, transparent);
+    transition:
+      background-color 300ms var(--ease-out),
+      box-shadow 300ms var(--ease-out);
+  }
+
+  .dot[data-busy] {
+    background-color: var(--brand-a);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-a) 22%, transparent);
+  }
+
+  .dot[data-busy]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-color: var(--brand-a);
+    animation: dot-pulse 1.4s var(--ease-out) infinite;
+  }
+
+  .labels {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    perspective: 140px;
+  }
+
+  .label {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The swap is a cross-fade with a slight rise: the old line drifts up and
+   * out in 200ms while the new one rises into place over 320ms, a beat
+   * behind it so the two never read as one smudge. Not on first render,
+   * only on a change. */
+  .label[data-enter] {
+    animation: label-in 320ms var(--ease-out) 40ms backwards;
+  }
+
+  /* An exit, so it holds its last frame until React removes it. */
+  .leaving {
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    transform-origin: 0 50%;
+    pointer-events: none;
+    animation: label-out 200ms var(--ease-in) forwards;
+  }
+
+  /*
+   * One pass of light across the line each time a working status arrives,
+   * rather than a loop: while the assistant works, the orb and the answer
+   * are where the eye belongs. A brighter copy of the line shows through a
+   * soft window that slides across it. Only transforms move: the window
+   * travels one way and the copy inside it the other, so the copy stays
+   * still under the moving window, and both run on the compositor. At rest
+   * both are parked where the pass ends, past the right edge.
+   */
+  .sheen {
+    position: absolute;
+    inset: 0;
+    -webkit-mask: linear-gradient(90deg, transparent, #000 50%, transparent) 0 0 / 50% 100% no-repeat;
+    mask: linear-gradient(90deg, transparent, #000 50%, transparent) 0 0 / 50% 100% no-repeat;
+    pointer-events: none;
+    transform: translateX(100%);
+    animation: sweep-window 1.6s var(--ease-in-out) 360ms backwards;
+  }
+
+  .sheenText {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink);
+    transform: translateX(-100%);
+    animation: sweep-copy 1.6s var(--ease-in-out) 360ms backwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sheen,
+    .dot[data-busy]::after {
+      display: none;
+    }
+  }
+}
+
+/* The command menu's "pause motion" stops perpetual motion site-wide. */
+:root[data-motion="paused"] .sheen,
+:root[data-motion="paused"] .dot[data-busy]::after {
+  display: none;
+}
+
+@keyframes label-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes label-out {
+  to {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes island-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+
+@keyframes island-open {
+  from {
+    width: var(--island-h);
+  }
+}
+
+@keyframes island-words {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    translate: -10px 0;
+  }
+}
+
+@keyframes sweep-window {
+  0% {
+    transform: translateX(-50%);
+  }
+  70%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sweep-copy {
+  0% {
+    transform: translateX(50%);
+  }
+  70%,
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes dot-pulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(3);
+  }
+}

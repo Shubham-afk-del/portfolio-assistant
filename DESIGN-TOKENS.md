@@ -287,3 +287,196 @@ the skill rates severity High.
 **What did not change.** The radius is still 0, the accent is still spent only
 on evidence and focus, monospace is still reserved for measured figures, and
 the type scale is untouched.
+
+---
+
+## Amendment: the recruiter-facing redesign, 9 October 2026
+
+At the owner's request the page was rebuilt as a recruiter-facing chat: glass
+throughout, a photograph, experience and education always on screen, direct
+contact (portfolio, LinkedIn, email, phone), and real motion when a question
+is typed and when an answer arrives. Several Phase 0 rules give way, so they
+are listed rather than quietly dropped. The `ui-ux-pro-max` skill was used for
+the direction; its design-system pass recommended its "AI-Native UI" style
+with a purple and cyan palette, and the purple was declined as the most
+generic colour an AI product can pick.
+
+**What gives way.** Radius is no longer 0: panels are 28px, cards 16 to 24px,
+chips and the composer are pills. The brand gradient, indigo `#4058e0` to
+`#3046c8`, is spent on the visitor's own messages and the primary actions,
+which the old "accent on evidence only" rule would not allow. Evidence keeps
+its own token for citations, links and focus. An "aurora" (indigo, teal,
+amber, violet) is decorative only, on the assistant's orb, the composer ring
+and the caret, and no text ever sits on it.
+
+**Layout.** On wide screens a profile sidebar sits beside the console:
+photograph, name, programme, availability, a résumé button that states its
+measured size, contact tiles, and Experience / Education as two tabs over one
+timeline. Each timeline entry has an "Ask" button that sends a question about
+it. Below 1024px the sidebar becomes a bottom sheet opened from the header,
+and the welcome screen carries availability and one-tap contact so nothing a
+recruiter came for needs a tap to find. At 1440 by 900 the sidebar's career
+tabs are measured above the fold.
+
+**Theming.** Every colour token is written once as `light-dark()` and
+resolves against `color-scheme`, which a head script sets from the stored
+choice or the system preference before first paint. That is what makes a
+theme toggle possible without a second copy of the palette. The toggle
+switches through the View Transitions API as a circle growing from the button.
+
+**Contrast, recomputed.** Against the glass panel composited over the
+strongest point of the field (indigo plus violet in light, indigo plus teal
+in dark):
+
+| Pair | Light | Dark |
+|---|---|---|
+| ink on glass | 13.57:1 | 10.88:1 |
+| ink-muted on glass | 5.61:1 | 5.50:1 |
+| evidence on glass | 5.72:1 | 6.53:1 |
+| caution on glass | 5.44:1 | 6.52:1 |
+| control border on glass | 3.57:1 | 3.43:1 |
+| white on the brand gradient | 5.69 to 7.41:1 | same |
+
+The dark field was strengthened after the first render looked flat, and the
+dark `rule-on-glass` lightened from `#6f7a8c` to `#7a8598` to stay above 3:1.
+
+**A glass finding worth keeping.** The first build nested the header and
+composer overlays, each with `backdrop-filter`, inside a console panel that
+had its own. In headless Chrome the transcript came through the header
+perfectly sharp: an element with `backdrop-filter` is a backdrop root for its
+descendants, and Chrome then left the scrolled content out of the overlays'
+blur. Removing the panel's filter in the same render made the header frost
+correctly. Every panel is now two layers, a frosted `.glass-fill` behind the
+content as its sibling, and the panel itself, which only clips and casts the
+shadow. For the same reason panels enter by moving, never by fading: opacity
+below 1 would make the panel a backdrop root for the whole entrance.
+
+**Motion.** Springs are damped-spring step responses sampled into `linear()`
+(`--ease-spring`, 2% overshoot, `--ease-pop`, 12.6%), shared by CSS and the
+Web Animations API. While typing, an aurora ring draws around the composer, a
+glow beneath it pulses per keystroke, and the orb ripples and reads
+"Listening". On send the question flies from wherever it was asked (composer,
+suggestion card or timeline entry) to its bubble, measured as a FLIP so
+layout never animates. While retrieving, the orb speeds up through its
+playback rate rather than its duration, so it accelerates instead of jumping.
+Answer words arrive out of focus in the evidence colour and settle into ink,
+which marks what is new while the answer is still being written. Entrances
+fill backwards only, so no finished animation leaves a filter or transform on
+every word. Reduced motion stops all of it, including the script-driven
+pieces, and the typewriter placeholder becomes one static line.
+
+**Measured cost.** First-load JavaScript for `/` is 300 KB gzipped, down from
+317 KB before the redesign. Both miss SPEC-v2 §16's 180 KB: React DOM and the
+Next.js runtime are about 155 KB of it on their own, and the largest
+app-level cost is zod, pulled in by the AI SDK's `useChat` to validate stream
+chunks. Getting under budget means replacing `useChat` with a hand-rolled
+stream reader, which belongs with the generation work rather than here.
+
+**Data.** The photographs are the owner's published headshot (also his GitHub
+avatar), with no location or camera metadata. The phone number is read from
+`CONTACT_PHONE` and never committed (see `content/profile.yaml`); the
+portfolio URL was taken from the link on the résumé PDF and checked live.
+
+---
+
+## Amendment: "liquid constellation", 9 October 2026 (second pass)
+
+The owner asked for a bolder, more creative version. Five research passes
+(AI assistant interfaces, award-level portfolios, glass and shader techniques,
+typing and streaming micro-interactions, and honest embedding visualisation)
+fed six component builds. Research changed the direction as much as it added
+to it, so what was dropped is recorded with what was built.
+
+**Dropped, because research named it as a generic-AI tell.** Purple and cyan
+as brand colours, gradient text, sparkle icons, and glow that is always on and
+means nothing. The aurora palette is now indigo `#4058e0`, azure `#3b9eff`,
+gold `#f5b83d` and coral `#f97352`. The field no longer drifts: it is a still,
+grainy gradient, which also lets the browser blur each glass panel once and
+cache it instead of re-blurring every frame. Orbs rest when idle. The only
+motion that runs on its own is the pointer light, which follows the visitor,
+and the status-dot halos; both stop under the command menu's "pause motion"
+(WCAG 2.2.2), which is persisted and applied before first paint.
+
+**Contrast, rechecked on the new field** (glass composited over its strongest
+overlaps: indigo with coral in light, indigo with azure in dark):
+
+| Pair | Light | Dark |
+|---|---|---|
+| ink on glass | 13.90:1 | 10.90:1 |
+| ink-muted on glass | 5.75:1 | 5.51:1 |
+| evidence on glass (also the headline's italic word) | 5.86:1 | 6.55:1 |
+| caution on glass | 5.57:1 | 6.53:1 |
+| control border on glass | 3.65:1 | 3.44:1 |
+
+**Floating chrome.** The console's header and composer bars became small
+pieces of glass: a status island at the top centre, round controls in the
+corner (⌘K, new chat, theme) and a floating composer. The transcript fades out
+before it reaches them (a mask on the scroller), so text never collides with
+chrome. The island is "Liquid Glass" in Chromium, refracting what passes
+under its rim through an SVG displacement filter in `backdrop-filter`; Safari
+and Firefox cannot run that and get frosted glass that is finished on its own.
+
+**Signature motion, once per question.** Research recommended one meaningful
+motion over many decorative ones. When a question is sent it flies from where
+it was asked into its bubble (the FLIP from the first pass), and a comet of
+light with a sharp head travels from the same spot to the assistant's mark,
+which pulses as it lands (`lib/comet.ts`). The answer card's ring turns only
+while that answer is being written, winds down over half a second through a
+registered `--ring` property, and one band of light crosses the finished text.
+
+**The knowledge map.** Every passage the assistant can retrieve, projected
+from its embedding to 2D with PCA at build time (`lib/corpus-map.ts`; 30% of
+the variance kept). The welcome shows it as a hero with a caption that states
+what the projection can and cannot claim; each answer shows a compact copy
+beside its sources with the retrieved passages lit in rank order, linked both
+ways on hover. There is deliberately no query point. Measured: about half of
+each chunk's eight nearest neighbours in the full space stay nearest on the
+map, against 7% for random placement.
+
+**Components.** `ShaderOrb` (raw WebGL2, the CSS orb underneath as fallback,
+its render loop stopped at rest; at most two instances, since browsers cap
+WebGL contexts), `KnowledgeMap` (SVG, keyboard-walkable, polite live summary),
+`StatusIsland` and `LiquidGlass`, a rebuilt `Composer` (letters bloom in from
+indigo through a mirror layer under the real textarea; typing speed drives the
+ring and glow as one smoothed "energy" value; the example placeholder plays
+once), `HoloCard` (the headshot as a holographic badge, foil masked off the
+face, flipping to his London time, measured figures and a downloadable contact
+card), and a ⌘K `CommandPalette` whose menu and `cmdk` load only when first
+opened.
+
+**Type.** Headlines are set in Inter with one italic word in Instrument Serif,
+in solid evidence colour. One more font file, one weight and style.
+
+**Measured cost.** First-load JavaScript for `/` is 324 KB gzipped, 24 KB more
+than the first pass for everything above. It still misses SPEC-v2 §16's 180 KB
+for the reasons recorded before (React DOM and the Next.js runtime are about
+155 KB of it, zod via the AI SDK most of the rest). The obvious next saving is
+loading the shader orb's engine on demand behind its CSS fallback.
+
+## Amendment: Apple-style Liquid Glass, 9 October 2026 (third pass)
+
+The owner asked for glass "like Apple's". Apple's Liquid Glass (iOS 26, macOS
+Tahoe) is a lens rather than frost: clear, bending what is behind it at the
+rim, with a specular edge, and Apple keeps it to the controls that float over
+content, never the content itself. This pass follows that rule.
+
+**More of the floating layer is real glass.** Until now only the status island
+refracted. The corner controls, the jump-to-latest pill, the phones' profile
+pill and the composer now do too. The lens moved out of `LiquidGlass` into a
+`useLiquidLens(probe, options)` hook, so glass built from its own layers (the
+composer's frost) bends the same way without the component's markup. It takes
+a `blur`: 3px by default for small controls, 9px on the composer, which text
+always passes under and would otherwise read through.
+
+**Clearer, with contrast held.** Refracting, the tint now splits 45% at the
+rim and a feathered 60% core behind the content (composer: 45% and 70%). The
+rim is clear enough to read as a lens; the centre, where text sits, stays at
+or above the panels' own tint (alpha 0.65 against 0.60 light, 0.62 against
+0.55 dark), which is what the text contrast was measured against, and the
+glass floats over a panel besides. Safari and Firefox keep the frosted base
+unchanged.
+
+**Light.** An inner glow, a pointer-following specular spot (fine pointers
+only; still under reduced motion and the pause control), and a spring "give"
+when a glass button is pressed. The two big panels gain a 1px gradient rim and
+an inner glow; their frost and tint are untouched.
