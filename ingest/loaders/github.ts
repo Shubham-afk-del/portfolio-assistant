@@ -110,6 +110,57 @@ function wrapSource(raw: string, path: string): string {
   return [`# ${path}`, "", `\`\`\`${language}`, raw.trim(), "```"].join("\n");
 }
 
+/**
+ * A SQL script with section banners ("-- SECTION 6." and a title on the next
+ * line) becomes one heading and one fenced block per section, so the chunker
+ * can split it where its author did. Whole, the 29-query solution file in
+ * SQL_Farmers_Insurance_Analysis is one passage of about 5,400 tokens: too
+ * broad to rank for a question about joins, and most of a prompt when it
+ * does. A script without banners stays one block.
+ */
+function sqlToMarkdown(raw: string, path: string): string {
+  const lines = raw.trim().split("\n");
+  const banner = (line: string | undefined): RegExpExecArray | null =>
+    /^--\s*SECTION\s+(\d+)\.?\s*$/i.exec(line ?? "");
+  const rule = (line: string | undefined): boolean => /^--\s*-{8,}\s*$/.test(line ?? "");
+  const neighbour = (from: number, step: 1 | -1): string | undefined => {
+    for (let j = from + step; j >= 0 && j < lines.length; j += step) {
+      if (lines[j]!.trim() !== "") return lines[j];
+    }
+    return undefined;
+  };
+
+  const sections: { heading: string; lines: string[] }[] = [{ heading: "", lines: [] }];
+  lines.forEach((line, i) => {
+    const match = banner(line);
+    // The dashed rule above a banner opens its section, so it is not left
+    // dangling at the end of the previous one.
+    const opens =
+      match !== null ? !rule(neighbour(i, -1)) : rule(line) && banner(neighbour(i, 1)) !== null;
+    if (opens) sections.push({ heading: "", lines: [] });
+    const current = sections[sections.length - 1]!;
+    if (match !== null) {
+      const next = neighbour(i, 1) ?? "";
+      const title = next.trimStart().startsWith("--")
+        ? next.replace(/^\s*--\s*/, "").replace(/\s*\[[^\]]*\]\s*$/, "").trim()
+        : "";
+      current.heading = `Section ${match[1]!}${title === "" ? "" : `: ${title}`}`;
+    }
+    current.lines.push(line);
+  });
+
+  if (sections.length === 1) return wrapSource(raw, path);
+
+  const parts: string[] = [`# ${path}`, ""];
+  for (const section of sections) {
+    const body = section.lines.join("\n").trim();
+    if (body === "") continue;
+    if (section.heading !== "") parts.push(`## ${section.heading}`, "");
+    parts.push("```sql", body, "```", "");
+  }
+  return parts.join("\n").trim();
+}
+
 function wanted(path: string, size: number | undefined): boolean {
   if (CORPUS_SOURCES.githubIgnore.some((ignore) => path.includes(ignore))) return false;
 
@@ -152,7 +203,9 @@ async function loadRepo(source: GithubSource): Promise<LoadedDocument[]> {
     try {
       body = path.endsWith(".ipynb")
         ? notebookToMarkdown(raw, path)
-        : wrapSource(raw, path);
+        : path.endsWith(".sql")
+          ? sqlToMarkdown(raw, path)
+          : wrapSource(raw, path);
     } catch (error) {
       console.warn(`  ${repo}/${path}: could not parse (${String(error)}), skipped`);
       continue;
