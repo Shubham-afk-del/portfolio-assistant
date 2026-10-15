@@ -127,8 +127,10 @@ They are in `PROVIDER_LIMITS` in `lib/config.ts`.
 | Groq, `openai/gpt-oss-20b` | 8K tokens/min | 429s throughout contextualisation |
 | GitHub, unauthenticated | 60 requests/hour | not hit; `GITHUB_TOKEN` raises it to 5,000 |
 
-**What that costs.** A full re-ingest of 111 chunks takes about 14 minutes, and
-almost all of it is waiting. The work itself is seconds.
+**What that costs.** A full re-ingest of the first 111 chunks took about 14
+minutes, and adding three repositories on 15 October 2026 (128 new chunks,
+75,000 embedded tokens) took 25. Almost all of it is waiting; the work itself
+is seconds.
 
 **So the client throttles before it sends.** Retrying after a 429 is not enough
 when the limit is three requests a minute: the backoff has to outlast the
@@ -151,15 +153,18 @@ becomes annoying.
 enough that retrieval is genuinely necessary, with a target of 150k to 500k
 tokens. Bolting retrieval onto a few thousand tokens is a tell.
 
-Where it stands: **32 documents, 111 chunks, roughly 50,500 estimated tokens.**
-Written content (case studies, decision records, interview answers) is 7
-documents of it; the rest is code and notebooks from an allowlist of three
-public repositories, which is where most of the volume is.
+Where it stands (15 October 2026): **40 documents, 238 chunks, roughly 111,000
+estimated tokens.** Written content (case studies, decision records, interview
+answers) is 7 documents of it; the rest is code and notebooks from an allowlist
+of six public repositories, which is where most of the volume is. It was 32
+documents, 111 chunks and about 50,500 tokens until three data science case
+studies (insurance fraud, employee retention, crop insurance in SQL) were added.
 
-That is a third of the low end of the target. It is enough for retrieval to do
-real work, and the honest position on `/experiments` will be the measured one:
-at this scale, here is what each ablation row buys. If the numbers show
-retrieval adding little, that is the result and it gets published.
+That is about three quarters of the low end of the target. It is enough for
+retrieval to do real work, and the honest position on `/experiments` will be
+the measured one: at this scale, here is what each ablation row buys. If the
+numbers show retrieval adding little, that is the result and it gets
+published.
 
 **One repository is deliberately excluded.**
 `University-Assignment--Community-Vaccination-Tracker` is a fork, and which

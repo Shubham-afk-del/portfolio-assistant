@@ -166,6 +166,21 @@ export const CORPUS_SOURCES = {
       repo: "Notes_App_AE2",
       why: "Web Services coursework. Small, and the only JavaScript on the profile.",
     },
+    {
+      owner: "Shubham-afk-del",
+      repo: "Fraudulent_Claim_Detection",
+      why: "Insurance fraud classification: logistic regression against a tuned random forest.",
+    },
+    {
+      owner: "Shubham-afk-del",
+      repo: "Predicting_Employee_Retention",
+      why: "Employee retention: logistic regression with RFE, read through its odds ratios.",
+    },
+    {
+      owner: "Shubham-afk-del",
+      repo: "SQL_Farmers_Insurance_Analysis",
+      why: "Crop insurance analysis in MySQL, and the only SQL on the profile.",
+    },
     // Deliberately absent: University-Assignment--Community-Vaccination-Tracker.
     // It is a fork, and which lines are the owner's cannot be established from
     // the repository. Ingesting it would let the assistant answer questions

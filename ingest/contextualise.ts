@@ -54,39 +54,44 @@ export async function contextualiseAll(
   const blurbs = new Map<string, string>();
   const stats: ContextualiseStats = { generated: 0, cached: 0 };
 
-  for (const item of items) {
-    const hit = cache[item.hash];
-    if (hit !== undefined) {
-      blurbs.set(item.hash, hit);
-      stats.cached += 1;
-      continue;
+  // Saved however the loop ends, so a run stopped by a daily cap keeps the
+  // blurbs it already paid for and the next run starts where this one stopped.
+  try {
+    for (const item of items) {
+      const hit = cache[item.hash];
+      if (hit !== undefined) {
+        blurbs.set(item.hash, hit);
+        stats.cached += 1;
+        continue;
+      }
+
+      const prompt = [
+        `Document title: ${item.document.title}`,
+        `Document type: ${item.document.docType}`,
+        item.document.project === undefined ? "" : `Project: ${item.document.project}`,
+        item.document.company === undefined ? "" : `Company: ${item.document.company}`,
+        "",
+        "Excerpt:",
+        item.content,
+      ]
+        .filter((line) => line !== "")
+        .join("\n");
+
+      const blurb = await complete({
+        system: SYSTEM,
+        prompt,
+        maxTokens: 400, // reasoning tokens share this budget; see lib/llm/groq.ts
+        temperature: GENERATION.temperature,
+      });
+
+      const cleaned = blurb.replace(/\s+/g, " ").trim();
+      cache[item.hash] = cleaned;
+      blurbs.set(item.hash, cleaned);
+      stats.generated += 1;
     }
-
-    const prompt = [
-      `Document title: ${item.document.title}`,
-      `Document type: ${item.document.docType}`,
-      item.document.project === undefined ? "" : `Project: ${item.document.project}`,
-      item.document.company === undefined ? "" : `Company: ${item.document.company}`,
-      "",
-      "Excerpt:",
-      item.content,
-    ]
-      .filter((line) => line !== "")
-      .join("\n");
-
-    const blurb = await complete({
-      system: SYSTEM,
-      prompt,
-      maxTokens: 400, // reasoning tokens share this budget; see lib/llm/groq.ts
-      temperature: GENERATION.temperature,
-    });
-
-    const cleaned = blurb.replace(/\s+/g, " ").trim();
-    cache[item.hash] = cleaned;
-    blurbs.set(item.hash, cleaned);
-    stats.generated += 1;
+  } finally {
+    saveCache(repoRoot, cache);
   }
 
-  saveCache(repoRoot, cache);
   return { blurbs, stats };
 }

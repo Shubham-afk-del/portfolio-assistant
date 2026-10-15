@@ -117,19 +117,27 @@ skills:
       applied. It saved roughly 2 to 5 hours of my own time a week. I was its
       only user and it was retired when I left. Two ML assignments on real data:
       delivery-time regression over 175,777 rows and an EDA over 3,014,248 rows.
+      Two classification case studies on synthetic data: insurance fraud on
+      1,000 claims and employee retention on 74,610 records.
 
   - name: Pandas / NumPy
     level: working
     evidence: >-
-      Cleaning and feature engineering on both assignments, including reducing a
-      3,014,248 row taxi dataset to 489,542 usable rows.
+      Cleaning and feature engineering on all four Python case studies,
+      including reducing a 3,014,248 row taxi dataset to 489,542 usable rows,
+      and recomputing the results of the crop insurance SQL analysis in pandas
+      to check them.
 
   - name: Scikit-learn
     level: working
     evidence: >-
       Linear regression pipeline on Porter delivery data: 175,777 rows, an 80/20
       split, Recursive Feature Elimination from 12 features to 8, R squared of
-      0.8737 and MAE of 2.45 minutes on scaled features.
+      0.8737 and MAE of 2.45 minutes on scaled features. Logistic regression
+      with RFECV against a grid-searched random forest for insurance fraud
+      (validation F1 0.729, AUC 0.855), and logistic regression with RFE for
+      employee retention (validation accuracy 0.739, AUC 0.825), each with its
+      cutoff chosen from the sensitivity and specificity curves.
 
   - name: SQL
     level: working
@@ -137,7 +145,11 @@ skills:
       Database Management Systems (LCSCI7228) on the MSc: took business rules
       through an ER model to a relational schema in SQL, normalised to 3NF, then
       wrote eight queries of varying complexity and added indexes tested against
-      sample queries. The schema and the query set both scored full marks.
+      sample queries. The schema and the query set both scored full marks. On
+      the upGrad and IIIT Bangalore programme: 29 MySQL queries on India's PMFBY
+      crop insurance data, using joins, subqueries, CTEs, window functions,
+      constraints and indexes, with the results recomputed in pandas to check
+      them.
 
   - name: NLP
     level: familiar
@@ -174,7 +186,7 @@ skills:
 
   - name: Git
     level: working
-    evidence: "Daily use across coursework, the two analysis projects and this repository."
+    evidence: "Daily use across coursework, the analysis projects and this repository."
 
   - name: C++
     level: familiar
@@ -414,14 +426,61 @@ projects:
       JavaScript. University coursework rather than production work.
     repo: https://github.com/Shubham-afk-del/Notes_App_AE2
     stack: [JavaScript]
+  # Added 15 Oct 2026 from each repository's README, which quotes the executed
+  # notebook outputs. Case studies from the upGrad and IIIT Bangalore Data
+  # Science Programme.
+  - name: Fraudulent_Claim_Detection
+    one_liner: >-
+      Fraud detection on 1,000 synthetic auto insurance claims with a 24.7%
+      fraud rate, from the upGrad and IIIT Bangalore Data Science Programme. A
+      six-feature logistic regression caught 84% of frauds at 85% specificity
+      on held-out claims (F1 0.729, AUC 0.855) and beat a tuned random forest,
+      which overfit the oversampled training set, on every validation metric.
+      The strongest feature is a label leak in the synthetic data, and the
+      write-up says so.
+    repo: https://github.com/Shubham-afk-del/Fraudulent_Claim_Detection
+    stack: [Python, Pandas, Scikit-learn, statsmodels, imbalanced-learn]
+    metrics:
+      - { label: claims, value: "1,000" }
+      - { label: validation F1, value: "0.729" }
+      - { label: AUC, value: "0.855" }
+  - name: Predicting_Employee_Retention
+    one_liner: >-
+      Logistic regression on 74,610 employee records to predict who stays, from
+      the upGrad and IIIT Bangalore Data Science Programme. On 21,168 held-out
+      employees it recognised 74.0% of those who stayed and 73.9% of those who
+      left (accuracy 0.739, AUC 0.825). Seniority and remote work mattered
+      most: senior staff have 12.05 times the odds of staying of entry-level
+      staff, and remote workers 5.62 times.
+    repo: https://github.com/Shubham-afk-del/Predicting_Employee_Retention
+    stack: [Python, Pandas, Scikit-learn, statsmodels]
+    metrics:
+      - { label: employees, value: "74,610" }
+      - { label: validation accuracy, value: "0.739" }
+      - { label: AUC, value: "0.825" }
+  - name: SQL_Farmers_Insurance_Analysis
+    one_liner: >-
+      29 MySQL queries on India's PMFBY crop insurance scheme, over 1,870
+      district-year records from 2018 to 2021, from the upGrad and IIIT
+      Bangalore Data Science Programme: joins, subqueries, CTEs, window
+      functions, constraints and indexes. Farmers paid 13.1% of the gross
+      premium, a share that fell every year from 19.1% in 2018 to 10.6% in 2021.
+    repo: https://github.com/Shubham-afk-del/SQL_Farmers_Insurance_Analysis
+    stack: [MySQL]
+    metrics:
+      - { label: queries, value: "29" }
+      - { label: district-year records, value: "1,870" }
   - name: This assistant
     one_liner: >-
-      This site. A retrieval-grounded assistant that answers questions about my
-      work with every claim traced to a source document. In progress: the
-      retrieval pipeline and its eval harness are being built before the chat
-      interface, on purpose, so the answer quality is measured rather than
-      asserted.
-    case_study: content/case-studies/this-assistant.md # write after Phase 4
+      This site. A retrieval-grounded assistant that answers recruiters'
+      questions about my work from my own documents and shows the passages each
+      answer drew on: hybrid search (Voyage embeddings and BM25), an LLM
+      reranker with a relevance gate, a separate check that declines general
+      questions, and a set of test questions it is measured against before
+      every release.
+    repo: https://github.com/Shubham-afk-del/portfolio-assistant
+    # case_study: content/case-studies/this-assistant.md, still to be written.
+    # Left out until it exists, so the model is never handed a path to nothing.
 
 languages:
   - English
