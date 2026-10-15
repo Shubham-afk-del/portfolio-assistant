@@ -6,27 +6,29 @@ import type { CorpusIndex } from "./retrieval/types";
  *
  * What the picture can honestly claim, and the interface says so: the two
  * axes are the two directions along which these embeddings vary most, and
- * together they keep 30% of the variance (measured on 9 Oct 2026: 19.0% and
- * 11.1%). A projection can only shrink distances, never stretch them, so two
- * dots far apart on the map really are dissimilar, while two dots close
- * together may still differ along a dimension the projection dropped. About
- * half of each chunk's eight nearest neighbours in the full space are also
- * its nearest on the map (random placement would keep 7%).
+ * together they keep 20% of the variance (measured on 15 Oct 2026 over 238
+ * chunks: 10.7% and 8.9%; the 111 chunks of 9 Oct kept 30%, and a corpus
+ * with more kinds of work in it spreads its variance over more directions).
+ * A projection can only shrink distances, never stretch them, so two dots
+ * far apart on the map really are dissimilar, while two dots close together
+ * may still differ along a dimension the projection dropped. Nearly a third
+ * of each chunk's eight nearest neighbours in the full space are also its
+ * nearest on the map (random placement would keep 3%).
  *
  * There is no query point on the map. The question's embedding never reaches
- * the browser, and even a true projection of it would mislead at 30% of the
+ * the browser, and even a true projection of it would mislead at 20% of the
  * variance: its nearest dots on screen would often not be the retrieved ones.
  * Retrieval is shown by lighting up the chunks it actually returned.
  *
  * PCA rather than UMAP or t-SNE: it is deterministic, needs no dependency,
  * and it does not manufacture clusters the data does not have. Small
- * documents land tightly together; the two notebooks, with 66 chunks between
- * them, spread across about a third of the map, which is also true.
+ * documents land tightly together; the four notebooks, with 160 chunks
+ * between them, spread across about half of the map, which is also true.
  *
  * The welcome screen draws the same points in three dimensions, so a third
- * component, z, rides along. It keeps another 6.4% of the variance (36.5%
- * across all three, measured 10 Oct 2026) and lifts the share of the eight
- * nearest neighbours that survive the projection from 49% to 53%. The first
+ * component, z, rides along. It keeps another 6.6% of the variance (26.2%
+ * across all three, measured 15 Oct 2026) and lifts the share of the eight
+ * nearest neighbours that survive the projection from 31% to 45%. The first
  * two components and their scale are untouched by it, so the 2D map, which
  * is the galaxy's fallback, draws exactly what it drew before.
  */
@@ -38,8 +40,8 @@ export interface MapDocument {
   kind: string;
   /**
    * What the dot is coloured by: the repository for code, the kind of
-   * writing otherwise. Six values. Colouring by docType alone would paint
-   * 96 of the 111 dots the same colour, since most of the corpus is code.
+   * writing otherwise. Nine values. Colouring by docType alone would paint
+   * 223 of the 238 dots the same colour, since most of the corpus is code.
    */
   group: string;
 }
@@ -108,7 +110,8 @@ function normalise(vector: Float64Array): void {
 /**
  * Leading principal component of the centred rows, by power iteration on the
  * implicit covariance (v ← Xᵀ(Xv)), kept orthogonal to `against`. Each step
- * is two passes over a 111 × 1,024 matrix, so a few hundred steps is instant.
+ * is two passes over a 238 × 1,024 matrix, so a few hundred steps for all
+ * three components take about 150 ms, once per build.
  */
 function principalComponent(
   rows: Float64Array[],

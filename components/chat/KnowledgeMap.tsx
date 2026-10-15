@@ -60,13 +60,13 @@ const ASSUMED_WIDTH: Record<Variant, number> = { hero: 380, compact: 300 };
  * Colour slots, in the order of the palette in KnowledgeMap.module.css. The
  * three kinds of writing keep fixed colours; repositories take the remaining
  * slots in the order they first appear in the index, which is stable from
- * build to build. A seventh group falls back to a neutral rather than reusing
+ * build to build. A tenth group falls back to a neutral rather than reusing
  * a colour, since two groups in one colour would read as one.
  */
 const WRITING_SLOT: Record<string, number> = { "case-study": 0, decision: 1, "interview-answers": 2 };
-const FREE_SLOTS = [3, 4, 5, 0, 1, 2];
-const NEUTRAL_SLOT = 6;
-const SLOT_COUNT = 7;
+const FREE_SLOTS = [3, 4, 5, 6, 7, 8, 0, 1, 2];
+const NEUTRAL_SLOT = 9;
+const SLOT_COUNT = 10;
 
 interface Dot {
   id: string;
@@ -409,7 +409,7 @@ function still(): boolean {
  * every passage was scored, so every dot flashes once together; the hits
  * light up in rank order, each with a halo whose area grows with its score on
  * one fixed range, a ring and its rank number; everything else steps back by
- * the same amount. The question itself is never drawn, because a 30%
+ * the same amount. The question itself is never drawn, because a 20%
  * projection of it would sit nearest to dots it did not retrieve.
  *
  * The hero variant is the welcome card, with a legend and the caption that

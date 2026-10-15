@@ -133,9 +133,9 @@ let arrived = false;
  * same thing in their tooltip and ask the same question.
  */
 const WRITING_SLOT: Record<string, number> = { "case-study": 0, decision: 1, "interview-answers": 2 };
-const FREE_SLOTS = [3, 4, 5, 0, 1, 2];
-const NEUTRAL_SLOT = 6;
-const SLOT_COUNT = 7;
+const FREE_SLOTS = [3, 4, 5, 6, 7, 8, 0, 1, 2];
+const NEUTRAL_SLOT = 9;
+const SLOT_COUNT = 10;
 
 interface Star {
   id: string;

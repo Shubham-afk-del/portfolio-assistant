@@ -3,16 +3,23 @@
  * component; this file holds what Tailwind cannot say: the group palette,
  * SVG paint, the glow blending and the retrieval choreography.
  *
- * The six group colours were chosen by measurement, not by eye. The map is a
- * scatter, so any two groups can sit side by side, and the pairs that really
- * do (the three kinds of writing, the delivery-time repository beside them,
- * the taxi case study inside the taxi notebook) clear a colour-blind
- * separation of ΔE 12.6 in both themes (OKLab ×100, protanopia and
- * deuteranopia simulated), and every pair clears ΔE 15 for full colour
- * vision. The weakest colour-blind pairs, lime against amber or gold and
- * violet against indigo, belong to groups on opposite sides of the map, and
- * every group is also named in words: on the map, in the legend and in the
- * tooltip. Violet marks only the seven case-study passages.
+ * The nine group colours were chosen by measurement, not by eye (OKLab ×100,
+ * protanopia and deuteranopia simulated with Machado 2009). The map is a
+ * scatter, so the tests that matter are on the pairs that really do sit side
+ * by side, measured on the corpus of 15 Oct 2026: fraud claims amid employee
+ * retention, both beside the delivery-time repository, the interview answers
+ * and the case studies. For full colour vision every pair clears ΔE 14.7 in
+ * the light theme; in the dark, every side-by-side pair clears 14.5, and the
+ * closest pair of all (the notes app and fraud claims, 12.6) sits on opposite
+ * sides of the map. Simulated colour blindness: every side-by-side pair that
+ * involves one of the three newer colours clears 12.5 in both themes. The
+ * weakest side-by-side pair is older, decision records against interview
+ * answers at 8.9 under deuteranopia in the light theme (13.9 in the dark).
+ * The dark sky is held at a chroma of 0.12 rather than the paler colour that
+ * would score higher, because additive glow turns a pale star white. Every
+ * group is also named in words, on the map, in the legend and in the tooltip,
+ * so colour is never the only way to tell two apart. Violet marks only the
+ * seven case-study passages.
  */
 
 .root {
@@ -22,7 +29,10 @@
   --km-3: light-dark(#1098ad, #14b8a6); /* first repository: teal */
   --km-4: light-dark(#d97706, #f5b83d); /* second repository: amber, the brand gold in the dark */
   --km-5: light-dark(#4058e0, #91a7ff); /* third repository: indigo */
-  --km-6: var(--ink-muted); /* a seventh group would not be told apart by colour */
+  --km-6: light-dark(#01668d, #5ed5fe); /* fourth repository: sky */
+  --km-7: light-dark(#116b1a, #19b106); /* fifth repository: green */
+  --km-8: light-dark(#e96cad, #fa3392); /* sixth repository: pink */
+  --km-9: var(--ink-muted); /* a tenth group would not be told apart by colour */
 
   /* The stage the dots sit on: a shallow well in the card, darkest in the
    * dark theme, where the glow needs a night to show against. */
@@ -71,6 +81,9 @@
 .s4 { --c: var(--km-4); }
 .s5 { --c: var(--km-5); }
 .s6 { --c: var(--km-6); }
+.s7 { --c: var(--km-7); }
+.s8 { --c: var(--km-8); }
+.s9 { --c: var(--km-9); }
 
 .stage {
   position: relative;
