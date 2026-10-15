@@ -147,6 +147,13 @@ export interface GithubSource {
   repo: string;
   /** Why this repository is in the corpus. Also the blurb shown with a citation. */
   why: string;
+  /**
+   * What the knowledge map and the galaxy call it: the legend, the floating
+   * labels and the tooltips. Short on purpose, since nine groups share one
+   * legend inside the stage, and every row of chips is height the galaxy
+   * loses. The repository's own name is on GitHub, one click away.
+   */
+  label: string;
 }
 
 export const CORPUS_SOURCES = {
@@ -154,31 +161,37 @@ export const CORPUS_SOURCES = {
     {
       owner: "Shubham-afk-del",
       repo: "LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-",
+      label: "Delivery time",
       why: "Delivery-time regression. The notebook behind the case study of the same name.",
     },
     {
       owner: "Shubham-afk-del",
       repo: "EDA_Optimising_NYC_Taxis_Shubham_Kumar_Singh",
+      label: "NYC taxis",
       why: "NYC taxi exploratory analysis, including the placeholder-data correction.",
     },
     {
       owner: "Shubham-afk-del",
       repo: "Notes_App_AE2",
+      label: "Notes app",
       why: "Web Services coursework. Small, and the only JavaScript on the profile.",
     },
     {
       owner: "Shubham-afk-del",
       repo: "Fraudulent_Claim_Detection",
+      label: "Fraud claims",
       why: "Insurance fraud classification: logistic regression against a tuned random forest.",
     },
     {
       owner: "Shubham-afk-del",
       repo: "Predicting_Employee_Retention",
+      label: "Employee retention",
       why: "Employee retention: logistic regression with RFE, read through its odds ratios.",
     },
     {
       owner: "Shubham-afk-del",
       repo: "SQL_Farmers_Insurance_Analysis",
+      label: "Crop insurance",
       why: "Crop insurance analysis in MySQL, and the only SQL on the profile.",
     },
     // Deliberately absent: University-Assignment--Community-Vaccination-Tracker.

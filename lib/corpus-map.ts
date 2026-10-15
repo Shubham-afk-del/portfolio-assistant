@@ -1,3 +1,4 @@
+import { CORPUS_SOURCES } from "./config";
 import type { CorpusIndex } from "./retrieval/types";
 
 /**
@@ -81,9 +82,16 @@ const WRITING: Record<string, string> = {
   "interview-answers": "Interview answers",
 };
 
-/** "LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-/notebook.ipynb" to "LR Delivery Time Prediction". */
-function repositoryLabel(title: string): string {
-  const repository = title.split("/")[0] ?? title;
+/**
+ * The repository's short name from the allowlist ("Delivery time"), or for a
+ * repository without one, its own name made readable:
+ * "LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-/notebook.ipynb" to
+ * "LR Delivery Time Prediction".
+ */
+function repositoryLabel(document: CorpusIndex["documents"][number]): string {
+  const source = CORPUS_SOURCES.github.find((entry) => entry.repo === document.project);
+  if (source !== undefined) return source.label;
+  const repository = document.title.split("/")[0] ?? document.title;
   return repository
     .replace(/[-_]*Shubham[-_]Kumar[-_]Singh[-_]*/i, "")
     .replace(/[_-]+/g, " ")
@@ -150,7 +158,7 @@ export function buildCorpusMap(index: CorpusIndex): CorpusMap {
     id: document.id,
     title: document.title,
     kind: document.docType,
-    group: document.docType === "code" ? repositoryLabel(document.title) : (WRITING[document.docType] ?? "Writing"),
+    group: document.docType === "code" ? repositoryLabel(document) : (WRITING[document.docType] ?? "Writing"),
   }));
   const position = new Map(documents.map((document, i) => [document.id, i]));
 
