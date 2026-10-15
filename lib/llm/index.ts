@@ -94,27 +94,48 @@ export function classify(request: Omit<CompleteRequest, "model">): Promise<strin
 }
 
 /**
+ * Whether another model is worth trying. Google counts quota per model, and
+ * load too, so overload, a stream that never started and a quota that ran
+ * out are all reasons to move on. A daily quota is not worth retrying on the
+ * same model (gemini.ts marks it so), but it is exactly when the next model,
+ * with a quota of its own, should answer.
+ */
+function worthAnotherModel(error: unknown): error is ProviderError {
+  return error instanceof ProviderError && (error.retryable || error.status === 429);
+}
+
+/**
  * Retries cover the request being accepted, not the answer once it is
  * streaming: half an answer cannot be taken back from the visitor's screen.
  *
- * A refusal worth retrying (overload, quota, a stream that never started)
- * goes straight to the fallback model rather than back to the same one: the
- * fallback has a quota of its own, and an overloaded free model is more
- * likely to stay overloaded for the next second than to recover in it.
+ * A refusal worth moving on from goes straight to the next model rather than
+ * back to the same one, since an overloaded free model is more likely to stay
+ * overloaded for the next second than to recover in it: Flash-Lite, then
+ * Flash, then 3.1 Flash-Lite (lib/config.ts says why each).
  */
 export async function stream(request: Omit<GenerateRequest, "model">): Promise<AsyncIterable<string>> {
   if (gemini.stream === undefined) throw new Error("gemini adapter has no stream");
   try {
     return await gemini.stream({ ...request, model: MODELS.generate });
   } catch (error) {
-    if (!(error instanceof ProviderError) || !error.retryable) throw error;
+    if (!worthAnotherModel(error)) throw error;
     console.warn(`  generate falling back to ${MODELS.generateFallback.model} (${String(error)})`);
-    return withRetry(
+  }
+  try {
+    return await withRetry(
       "generate",
       () => gemini.stream!({ ...request, model: MODELS.generateFallback }),
       INTERACTIVE_DELAYS,
     );
+  } catch (error) {
+    if (!worthAnotherModel(error)) throw error;
+    console.warn(`  generate falling back to ${MODELS.generateLastResort.model} (${String(error)})`);
   }
+  return withRetry(
+    "generate",
+    () => gemini.stream!({ ...request, model: MODELS.generateLastResort }),
+    INTERACTIVE_DELAYS,
+  );
 }
 
 /**

@@ -45,6 +45,16 @@ export const MODELS = {
    */
   generateFallback: { provider: "gemini" as Provider, model: "gemini-3.5-flash", thinking: "minimal" },
   /**
+   * When the fallback fails too. On 15 Oct 2026 Flash-Lite answered "high
+   * demand" to about one request in five for hours, the fallback's 20 a day
+   * were gone by nine in the morning, and from then on any overloaded request
+   * failed for the visitor. 3.1 Flash-Lite has a quota of its own, a few
+   * hundred a day, and a separate load. It is also the eval judge, so in the
+   * rare eval answer that reaches this step the judge reads its own model's
+   * words; a visitor getting no answer at all is the worse failure.
+   */
+  generateLastResort: { provider: "gemini" as Provider, model: "gemini-3.1-flash-lite", thinking: "minimal" },
+  /**
    * High-volume, latency-sensitive stages.
    *
    * Was `llama-3.1-8b-instant` until 18 Sep 2026, when it was found to have
