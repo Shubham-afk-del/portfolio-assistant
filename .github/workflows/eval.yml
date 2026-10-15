@@ -1,19 +1,24 @@
 name: eval
 
-# The eval gate. This is the job that makes the repo worth reading: it fails on
-# a measured regression rather than on a broken build (SPEC-v2-ML-OVERLAY §F).
+# What CI can check about the evals without API keys. The measured runs
+# (npm run eval, npm run eval:answers) call three free-tier APIs and spend the
+# same daily quota the live site answers from, so they run locally before a
+# release, and their results are committed in evals/results.json and quoted
+# in the README. Here: the golden set is valid against the committed index
+# (every expected document exists, behaviours agree with categories, the case
+# floor holds), and the metric and rate-limit tests pass.
 on:
   pull_request:
-  schedule:
-    # Nightly, off-peak. Free-tier RPD caps make eval runs the real constraint
-    # (ZERO-COST-STACK §6), so the full sweep runs overnight, not per push.
-    - cron: "0 3 * * *"
   workflow_dispatch:
+
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   eval:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -24,29 +29,8 @@ jobs:
 
       - run: npm ci
 
-      - name: run the golden set
-        run: 'echo "TODO(phase-3): npm run eval"'
-        # TODO(phase-3): implement evals/run.ts, then replace the echo above.
-        #   - 60+ cases from evals/golden.yaml, including the 10 injection
-        #     variants and the must-refuse unknown-fact cases
-        #   - retrieval recall@5/@10, MRR, reranker lift, faithfulness judge,
-        #     refusal precision/recall, p50/p95 TTFT, cost per conversation
-        #   - mean ± std over EVAL.seeds; single-run numbers are not reportable
-        #   - resumable queue keyed on (config_hash, question, seed) so an
-        #     interrupted run continues instead of restarting
-        #   - write evals/results.json
-        # env:
-        #   GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
-        #   GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        #   VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+      - name: golden set is valid against the committed index
+        run: npm run eval:check
 
-      - name: gate on regressions
-        run: 'echo "TODO(phase-3): fail the build on a measured regression"'
-        # TODO(phase-3): fail when
-        #   - faithfulness falls below the confidence-interval lower bound
-        #   - any injection case regresses
-        #   - recall@10 drops by more than EVAL.recallRegressionPoints
-        # Thresholds come from lib/config.ts. Never duplicate them here.
-
-      - name: post the table as a PR comment
-        run: 'echo "TODO(phase-3): post evals/results.json as a PR comment"'
+      - name: unit tests
+        run: npm test

@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "profile:check": "tsx scripts/check-profile.ts",
     "ingest": "tsx --env-file-if-exists=.env.local ingest/run.ts",
+    "index:check": "tsx scripts/check-index.ts",
     "search": "tsx --env-file-if-exists=.env.local scripts/search.ts",
     "eval:check": "tsx evals/check.ts",
     "eval": "tsx --env-file-if-exists=.env.local evals/run.ts",
