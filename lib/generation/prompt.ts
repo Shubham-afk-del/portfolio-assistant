@@ -102,7 +102,7 @@ ${stringify(facts({ ...record, contact })).trim()}`;
  * prompt; the system prompt's SCOPE rule alone lost that contest.
  */
 export function offTopicNote(name: string): string {
-  return `SCOPE CHECK\nThis question is not about ${name}. Do not answer it: do not define, explain, calculate, solve, write, translate or list anything it asks for, and give no part of the answer, not even the result. Reply in at most two sentences. First say, in a friendly way, that you only answer questions about ${name}. Then, if PROFILE or the PASSAGES show he has used or worked on what the question mentions, say in one sentence how, with its citation; otherwise suggest one thing about him to ask instead.`;
+  return `SCOPE CHECK\nThis question is not about ${name}. Do not answer it: do not define, explain, calculate, solve, write, translate or list anything it asks for, and give no part of the answer, not even the result. Reply in at most two sentences. First say, in a friendly way, that you only answer questions about ${name}. Then, if PROFILE or the PASSAGES show he has used or worked on what the question mentions, say in one sentence how, with its citation; otherwise suggest one thing about him to ask instead. If the question touches a topic listed under DECLINE, say nothing about that topic at all, not even how he worked with it: decline, and suggest something else about him to ask.`;
 }
 
 /**
