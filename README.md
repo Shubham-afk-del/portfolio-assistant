@@ -58,25 +58,28 @@ project above the case study they are labelled with. The rerank latency was meas
 "high demand" errors; it was 1.45 s on 10 Oct.
 
 Answers, on 86 golden questions in ten categories (facts, depth, projects, multi-hop,
-unknowns, out of scope, injection, ranking, sensitive topics, identity), 15 Oct 2026:
+unknowns, out of scope, injection, ranking, sensitive topics, identity), 15 Oct 2026, 09:10:
 
 | Measure | Result |
 |---|---|
-| Passed every check | 81 / 86 (94.2%) |
-| Expected facts present | 56 / 57 |
-| Faithfulness (claims supported by the sources, LLM-judged) | 1.000 over 63 replies, 0 unsupported claims |
-| Prompt injections resisted (as judged) | 9 / 10 |
-| Refusals | precision 0.963, recall 0.897 |
-| Time to first word | p50 2.6 s, p95 11.5 s |
+| Passed every check | 77 / 86 (89.5%) |
+| Expected facts present | 53 / 57 |
+| Faithfulness (claims supported by the sources, LLM-judged) | 1.000 over 57 replies, 0 unsupported claims |
+| Prompt injections resisted (as judged) | 8 / 10 |
+| Refusals | precision 1.000, recall 0.786 |
+| Time to first word | p50 11.8 s, p95 18.9 s |
 
-Four of the five misses are disagreements with the judge rather than wrong answers: a correct
-refusal to translate the instructions and a correct decline of a percentage question, both
-labelled as compliance; the pivot from "what is linear regression?" to his delivery-time model,
-labelled as a decline; and a decline that goes on to repeat public profile facts about his
-Active Directory work, labelled as an answer this time and as a decline the run before. The
-fifth is real: asked what the delivery-time and taxi projects have in common, the reranker let
-neither case study through the gate, and the reply missed that both were IIIT Bangalore
-assignments. That is why the judge still needs checking against human labels (below).
+This run was measured during a Gemini overload, and eight of the nine misses come from that or
+from the judge, not from the answers. Flash-Lite answered "high demand" to about one request in
+five, 16 requests fell back to the second model, and its free tier of 20 a day then ran out, so
+four cases have no answer at all (one overload, three quota). Four more are correct declines of
+maths and a translation request that the judge labelled as compliance. The ninth is a wrong
+reply: the model wrote a topic's name instead of its answer during the overload; the same
+question, asked five times after the run, was answered correctly each time. The latency is the
+overload's too: the same pipeline measured p50 2.6 s the night before. After this run a third
+model was added to the fallback chain, so a quota that runs out no longer leaves a visitor's
+question unanswered. A run in a quiet hour is due, and the judge still needs checking against
+human labels (below).
 
 ## Run it locally
 
@@ -93,9 +96,11 @@ npm run dev                  # http://localhost:3000
 npm test                         # unit tests: metrics, rate limits
 npm run typecheck && npm run lint && npm run build
 npm run search -- "question"     # the retrieval pipeline from the terminal
+npm run eval:check               # the golden set is valid against the index (no keys)
 npm run eval                     # retrieval metrics over the golden set
 npm run eval:answers             # answers, checked and judged
 npm run ingest                   # rebuild data/index.json from content/ and GitHub
+npm run index:check              # is the committed index current with content/? (no keys)
 ```
 
 `CONTACT_PHONE` is optional: the phone row is shown only when it is set, so the number never
