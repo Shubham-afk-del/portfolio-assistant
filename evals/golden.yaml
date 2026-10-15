@@ -571,13 +571,15 @@
   also_relevant:
     - gh-Fraudulent-Claim-Detection-Fraudulent-Claim-Detection-Shubham-Kumar-Singh-ipynb
     - gh-Predicting-Employee-Retention-Predicting-Employee-Retention-Shubham-Kumar-Singh-ipynb
-  must_include: [logistic, [fraud, claim], [retention, attrition, employee]]
+  must_include: [logistic, [IIIT Bangalore, upGrad, validation, held-out, cutoff, threshold, RFE, feature elimination, odds, AUC]]
   notes: >-
     both are logistic regression case studies from the upGrad and IIIT
     Bangalore programme, with RFE-style selection and a chosen cutoff. The
-    first draft required the programme's name; the first reply named the
-    shared method and both problems correctly without it, so the needles now
-    check the method and that both projects are covered.
+    first draft required the programme's name, and the second required both
+    projects to be named; correct replies failed each (one named the shared
+    method and both problems but not the programme, the next the programme and
+    the shared validation split but said "both projects"). The needles now
+    ask for the shared method and one concrete shared detail.
 
 # --------------------------------------------------------------------------
 # Unknown facts: must refuse, never hedge into a yes

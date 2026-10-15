@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { GENERATION, MODELS, RETRIEVAL_CONFIG } from "@/lib/config";
+import { offTopicNote } from "@/lib/generation/prompt";
 import { GRADING } from "@/lib/llm/gemini";
 import type { CorpusIndex } from "@/lib/retrieval/types";
 import { JUDGE_SYSTEM } from "./judge";
@@ -50,15 +51,27 @@ export function save(path: string, data: object): void {
 /**
  * Everything that shapes an answer: the retrieval config, the models that
  * retrieve and write (not the judge), the generation settings, the full
- * system prompt, the reranker's instructions and the index build. Not the
- * scope check's instructions: what reaches the answer is the check's verdict,
- * which answerKey carries, so rewording the check regenerates only the
- * answers whose verdict it changes.
+ * system prompt, the note sent beside a question the scope check calls
+ * general, the reranker's instructions and the index build. The note is
+ * keyed by its wording, with a stand-in for the name, which the system
+ * prompt already carries; until 15 Oct 2026 it was not keyed at all, so
+ * rewording it alone would have reused answers written under the old words.
+ * Not the scope check's instructions: what reaches the answer is the check's
+ * verdict, which answerKey carries, so rewording the check regenerates only
+ * the answers whose verdict it changes.
  */
 export function answerRunKey(system: string, index: CorpusIndex): string {
   const { judge: _judge, ...answerModels } = MODELS;
   return sha(
-    JSON.stringify({ RETRIEVAL_CONFIG, MODELS: answerModels, GENERATION, system, rerank: GRADING, index: index.builtAt }),
+    JSON.stringify({
+      RETRIEVAL_CONFIG,
+      MODELS: answerModels,
+      GENERATION,
+      system,
+      scopeNote: offTopicNote("{name}"),
+      rerank: GRADING,
+      index: index.builtAt,
+    }),
   );
 }
 

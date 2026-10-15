@@ -397,8 +397,9 @@ certifications:
 projects:
   - name: LR_Delivery_Time_Prediction
     one_liner: >-
-      Delivery-time regression over 175,777 orders. All 12 features scored test
-      R² 0.8800; eliminating four of them cost six points of R², which is the
+      Delivery-time regression over 175,777 orders, a graded assignment on the
+      IIIT Bangalore Data Science programme. All 12 features scored test R²
+      0.8800; eliminating four of them cost six points of R², which is the
       opposite of what the brief expected.
     repo: https://github.com/Shubham-afk-del/LR_Delivery_Time_Prediction_-Shubham-Kumar-Singh-
     stack: [Python, Pandas, NumPy, Scikit-learn, Matplotlib]
@@ -410,8 +411,9 @@ projects:
   - name: EDA_Optimising_NYC_Taxis
     one_liner: >-
       Exploratory analysis of 489,542 taxi trips sampled across all twelve months
-      of 2023. Tipping is highest between 10pm and 2am and on card rather than
-      cash. Three figures in the submitted notebook turned out to be plotted from
+      of 2023, a graded assignment on the IIIT Bangalore Data Science programme.
+      Tipping is highest between 10pm and 2am and on card rather than cash.
+      Three figures in the submitted notebook turned out to be plotted from
       placeholder random data; the corrections are published alongside it.
     repo: https://github.com/Shubham-afk-del/EDA_Optimising_NYC_Taxis_Shubham_Kumar_Singh
     stack: [Python, Pandas, Matplotlib]

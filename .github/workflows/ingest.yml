@@ -1,20 +1,29 @@
 name: ingest
 
-# Re-ingests the corpus when written content changes. The corpus is immutable
-# at runtime and generated at build time (ZERO-COST-STACK §4), so this job is
-# what publishes it: chunk → contextualise → embed → write the index → commit.
+# The corpus index (data/index.json) is built locally with `npm run ingest`
+# and committed: building it calls Voyage and Groq on free tiers, and the
+# serverless function loads the committed file (ZERO-COST-STACK §4). This job
+# checks that the committed index is current with content/, so a written
+# document cannot change while the index the assistant answers from stays as
+# it was. It needs no keys.
 on:
+  pull_request:
+    paths:
+      - "content/**"
+      - "data/index.json"
+      - "ingest/**"
   push:
     branches: [main]
     paths:
       - "content/**"
+      - "data/index.json"
       - "ingest/**"
   workflow_dispatch:
 
 jobs:
-  ingest:
+  index:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -25,20 +34,5 @@ jobs:
 
       - run: npm ci
 
-      - name: ingest corpus
-        run: 'echo "TODO(phase-1): npm run ingest"'
-        # TODO(phase-1): implement ingest/run.ts, then replace the echo above.
-        #   - loaders per source: resume.pdf, case studies, decisions, GitHub
-        #     repos via an allowlist (SPEC-v2 §8)
-        #   - structural chunking, 300-800 tokens, never mid-code-block
-        #   - contextualise each chunk, cached by content hash so unchanged
-        #     content never re-pays for it, the most expensive step
-        #   - embed, then write data/index.json (or packed Float32Array)
-        #   - upsert by content hash, delete orphans, print "+12 −3 ~5"
-        #   - REFUSE to publish any chunk marked `visibility: private`
-        # env:
-        #   VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
-        #   GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
-      - name: commit the rebuilt index
-        run: 'echo "TODO(phase-1): commit data/index.json when it changes"'
+      - name: index is current with content/
+        run: npm run index:check
