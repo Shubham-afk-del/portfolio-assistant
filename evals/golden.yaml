@@ -2,7 +2,9 @@
 # measured against (SPEC-v2 §14, SPEC-v2-ML-OVERLAY §F). Drafted 10 Oct 2026
 # from content/profile.yaml and the seven written documents in content/;
 # every expected fact below is in one of them. The owner reviews it, because
-# it encodes facts about his own life.
+# it encodes facts about his own life. The cases on the three repositories
+# added on 15 Oct 2026 (fraud claims, employee retention, crop insurance SQL)
+# come from their READMEs, which are in the corpus.
 #
 # Fields
 #   id                 stable, kebab-case; results are keyed on it
@@ -204,6 +206,18 @@
   must_include: [working]
   notes: profile skill Retrieval-augmented generation is working (set by the owner on 9 Oct 2026).
 
+- id: depth-sql
+  category: depth
+  question: How strong is he at SQL?
+  expected_behaviour: answer
+  expected_docs: []
+  also_relevant:
+    - gh-SQL-Farmers-Insurance-Analysis-README-md
+  must_include: [working]
+  notes: >-
+    profile skill SQL is working; the evidence is the DBMS module and, since
+    15 Oct 2026, the PMFBY crop insurance analysis in MySQL.
+
 - id: depth-weakest
   category: depth
   question: What is he weakest at right now?
@@ -402,6 +416,90 @@
   must_include: [[measure, evidence, feel]]
   notes: decision 003; tuning by feel does not survive a change, measurement does.
 
+- id: project-fraud-model
+  category: project
+  question: Which model did he choose for insurance fraud detection, and why?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-Fraudulent-Claim-Detection-README-md
+  also_relevant:
+    - gh-Fraudulent-Claim-Detection-Fraudulent-Claim-Detection-Shubham-Kumar-Singh-ipynb
+  must_include: [logistic regression, [overfit, "0.813", "0.659", "0.982"]]
+  notes: >-
+    README: logistic regression beat a tuned random forest on every validation
+    metric; the forest scored 0.982 on training and 0.813 on validation.
+
+- id: project-fraud-metrics
+  category: project
+  question: How well did his fraud detection model do on held-out claims?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-Fraudulent-Claim-Detection-README-md
+  also_relevant:
+    - gh-Fraudulent-Claim-Detection-Fraudulent-Claim-Detection-Shubham-Kumar-Singh-ipynb
+  must_include: [["0.729", "0.855", "0.838", "0.847", 84%]]
+  notes: validation F1 0.729, AUC 0.855, sensitivity 0.838, accuracy 0.847.
+
+- id: project-fraud-weaknesses
+  category: project
+  question: What weaknesses did he find in his own fraud detection model?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-Fraudulent-Claim-Detection-README-md
+  also_relevant:
+    - gh-Fraudulent-Claim-Detection-Fraudulent-Claim-Detection-Shubham-Kumar-Singh-ipynb
+  must_include: [[leak, synthetic, hobb, artefact, artifact, inflat]]
+  notes: >-
+    the hobby flag is a label leak in synthetic data, and oversampling before
+    cross-validation inflated the CV scores.
+
+- id: project-retention-drivers
+  category: project
+  question: What did his employee retention model find makes people stay?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-Predicting-Employee-Retention-README-md
+  also_relevant:
+    - gh-Predicting-Employee-Retention-Predicting-Employee-Retention-Shubham-Kumar-Singh-ipynb
+  must_include: [[senior, seniority, job level], remote]
+  notes: senior staff 12.05 times the odds of staying, remote workers 5.62 times.
+
+- id: project-retention-accuracy
+  category: project
+  question: How accurate was his employee retention model?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-Predicting-Employee-Retention-README-md
+  also_relevant:
+    - gh-Predicting-Employee-Retention-Predicting-Employee-Retention-Shubham-Kumar-Singh-ipynb
+  must_include: [["0.739", "73.9", "74%", "0.825", "74.0"]]
+  notes: validation accuracy 0.739 and AUC 0.825 on 21,168 held-out employees.
+
+- id: project-sql-findings
+  category: project
+  question: What did his SQL analysis of India's crop insurance scheme find?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-SQL-Farmers-Insurance-Analysis-README-md
+  also_relevant:
+    - gh-SQL-Farmers-Insurance-Analysis-summary-queries-sql
+  must_include: [["13.1%", Madhya Pradesh, "63.9%", "19.1%", "10.6%"]]
+  notes: >-
+    README executive summary: four states hold 63.9% of coverage, farmers paid
+    13.1% of the gross premium, falling from 19.1% in 2018 to 10.6% in 2021.
+
+- id: project-sql-techniques
+  category: project
+  question: Which SQL techniques did he use in the farmers' insurance project?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-SQL-Farmers-Insurance-Analysis-README-md
+  also_relevant:
+    - gh-SQL-Farmers-Insurance-Analysis-SQL-Farmers-Insurance-Analysis-Shubham-Kumar-Singh-sql
+    - gh-SQL-Farmers-Insurance-Analysis-setup-sql
+  must_include: [[window, ROW_NUMBER, RANK], [CTE, common table expression]]
+  notes: README approach table; joins, subqueries, CTEs, window functions, constraints, indexes.
+
 # --------------------------------------------------------------------------
 # Multi-hop: the answer needs more than one document
 # --------------------------------------------------------------------------
@@ -462,6 +560,24 @@
     - content-decisions-001-human-approval-before-directory-writes-md
   must_include: [ServiceNow, Python]
   notes: profile stack plus the case study.
+
+- id: multi-classification-projects
+  category: multi_hop
+  question: What do his fraud detection and employee retention projects have in common?
+  expected_behaviour: answer
+  expected_docs:
+    - gh-Fraudulent-Claim-Detection-README-md
+    - gh-Predicting-Employee-Retention-README-md
+  also_relevant:
+    - gh-Fraudulent-Claim-Detection-Fraudulent-Claim-Detection-Shubham-Kumar-Singh-ipynb
+    - gh-Predicting-Employee-Retention-Predicting-Employee-Retention-Shubham-Kumar-Singh-ipynb
+  must_include: [logistic, [fraud, claim], [retention, attrition, employee]]
+  notes: >-
+    both are logistic regression case studies from the upGrad and IIIT
+    Bangalore programme, with RFE-style selection and a chosen cutoff. The
+    first draft required the programme's name; the first reply named the
+    shared method and both problems correctly without it, so the needles now
+    check the method and that both projects are covered.
 
 # --------------------------------------------------------------------------
 # Unknown facts: must refuse, never hedge into a yes

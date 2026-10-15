@@ -25,7 +25,7 @@ Portfolio: [shubham-kumar-singh.vercel.app](https://shubham-kumar-singh.vercel.a
    availability) goes into the system prompt on every turn and is never retrieved: a short
    factual field is exactly what retrieval gets confidently wrong.
 2. **Hybrid retrieval.** The question is embedded (Voyage `voyage-3-large`, 1024 dimensions)
-   and searched densely, and in parallel by a hand-written BM25 over the same 111 passages;
+   and searched densely, and in parallel by a hand-written BM25 over the same 238 passages;
    the two rankings are fused by reciprocal rank fusion (k = 60).
 3. **LLM reranker and gate.** Gemini 3.5 Flash-Lite grades the top 20 candidates on TREC's
    four-level relevance scale in one structured call. Passages under the gate's threshold are
@@ -42,30 +42,41 @@ Portfolio: [shubham-kumar-singh.vercel.app](https://shubham-kumar-singh.vercel.a
 
 ## Measured
 
-Retrieval, on 25 questions with labelled source documents, k = 10
-(`evals/results.json`, 10 Oct 2026):
+Retrieval, on 34 questions with labelled source documents over the 238 passages, k = 10
+(`evals/results.json`, 15 Oct 2026):
 
 | Configuration | Recall@5 | Recall@10 | MRR | nDCG@10 | p50 latency |
 |---|---|---|---|---|---|
-| Dense only | 0.893 | 0.947 | 0.960 | 0.885 | |
-| Hybrid (dense + BM25, RRF) | 0.800 | 0.967 | 0.879 | 0.803 | |
-| Hybrid + LLM rerank (3 runs) | 0.947 | 0.980 | 0.933 ± 0.012 | 0.888 | 1.45 s |
+| Dense only | 0.922 | 0.951 | 0.971 | 0.889 | |
+| Hybrid (dense + BM25, RRF) | 0.853 | 0.966 | 0.892 | 0.811 | |
+| Hybrid + LLM rerank (3 runs) | 0.928 ± 0.020 | 0.985 | 0.914 ± 0.010 | 0.866 ± 0.006 | 3.40 s |
 
-Answers, on 77 golden questions in ten categories (facts, depth, projects, multi-hop,
-unknowns, out of scope, injection, ranking, sensitive topics, identity), 11 Oct 2026:
+Doubling the corpus with three more repositories cost a little ranking quality on the questions
+that were already there: on the 25 of the previous run, reranked MRR fell by about 0.05 (0.940
+to 0.893, one run of each), because two of them now rank a notebook or README from the right
+project above the case study they are labelled with. The rerank latency was measured on a day the model was also returning
+"high demand" errors; it was 1.45 s on 10 Oct.
+
+Answers, on 86 golden questions in ten categories (facts, depth, projects, multi-hop,
+unknowns, out of scope, injection, ranking, sensitive topics, identity), 15 Oct 2026:
 
 | Measure | Result |
 |---|---|
-| Passed every check | 74 / 77 (96.1%) |
-| Expected facts present | 48 / 48 |
-| Faithfulness (claims supported by the sources, LLM-judged) | 1.000 over 53 replies, 0 unsupported claims |
-| Prompt injections resisted | 10 / 10 |
-| Refusals | precision 1.000, recall 0.897 |
-| Time to first word | p50 2.4 s, p95 8.3 s |
+| Passed every check | 81 / 86 (94.2%) |
+| Expected facts present | 56 / 57 |
+| Faithfulness (claims supported by the sources, LLM-judged) | 1.000 over 63 replies, 0 unsupported claims |
+| Prompt injections resisted (as judged) | 9 / 10 |
+| Refusals | precision 0.963, recall 0.897 |
+| Time to first word | p50 2.6 s, p95 11.5 s |
 
-The three misses are disagreements with the judge rather than wrong answers: two correct
-declines it labelled as compliance, and a correct "no grade on file yet" it labelled as an
-answer. That is why the judge still needs checking against human labels (below).
+Four of the five misses are disagreements with the judge rather than wrong answers: a correct
+refusal to translate the instructions and a correct decline of a percentage question, both
+labelled as compliance; the pivot from "what is linear regression?" to his delivery-time model,
+labelled as a decline; and a decline that goes on to repeat public profile facts about his
+Active Directory work, labelled as an answer this time and as a decline the run before. The
+fifth is real: asked what the delivery-time and taxi projects have in common, the reranker let
+neither case study through the gate, and the reply missed that both were IIIT Bangalore
+assignments. That is why the judge still needs checking against human labels (below).
 
 ## Run it locally
 
