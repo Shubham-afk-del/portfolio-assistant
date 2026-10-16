@@ -154,9 +154,9 @@ skills:
   - name: NLP
     level: familiar
     evidence: >-
-      IIIT Bangalore Advanced Certificate in Data Science with a specialisation
-      in Natural Language Processing, awarded 28 October 2025. Coursework rather
-      than shipped work.
+      IIIT Bangalore Advanced Certificate Programme in Data Science with a
+      specialisation in Natural Language Processing, awarded 28 October 2025.
+      Coursework rather than shipped work.
       TODO(owner): which techniques and assignments specifically?
 
   - name: PyTorch / TensorFlow
@@ -327,17 +327,17 @@ education:
       - LPHIL7252 Artificial Intelligence & Data Ethics
       - LDSCI7237 Artificial Intelligence Dissertation (agentic AI and LLMs)
   - school: IIIT Bangalore
-    credential: Postgraduate Diploma in Computer Science
-    # Dates and grade per LinkedIn. The certificate on file is the Advanced
-    # Certificate Programme in Data Science (28 Oct 2025), listed under
-    # certifications.
+    # The credential as the certificate names it (awarded 28 Oct 2025). The
+    # grade is the CGPA on the upGrad scorecard (22 credits); the scorecard
+    # gives no overall percentage, so none is stated.
+    credential: Advanced Certificate Programme in Data Science (NLP specialisation)
     start: 2025-01
-    end: 2026-01
+    end: 2025-10
     status: completed
-    grade: 96.25% (CGPA 3.85 out of 4.0)
+    grade: CGPA 3.85 out of 4.0
     summary: >-
-      An intensive data science and computer science programme covering Python,
-      data tooling, machine learning and advanced NLP.
+      Run with upGrad: four graded courses covering Python, data tooling,
+      machine learning and advanced machine learning for NLP.
   - school: Chandigarh University
     credential: Bachelor of Computer Applications (BCA)
     # Sep 2021 to Sep 2024 per LinkedIn. The degree certificate (issued 21 May
@@ -366,11 +366,6 @@ certifications:
   # Verified 9 Oct 2026 against each public page, which is also the `url` a
   # recruiter can open. Three dates differ from the résumé PDF, which still
   # shows the earlier years: the verification pages are authoritative.
-  - name: Advanced Certificate Programme in Data Science (specialisation in Natural Language Processing)
-    issuer: International Institute of Information Technology Bangalore, with upGrad
-    date: 2025-10-28
-    verified: true # certificate on file and on Accredible (credential issued 13 Feb 2026)
-    url: https://www.credential.net/efab1f3c-19ad-47ea-bcd5-b5622395cf12
   - name: Foundations of Responsible AI
     issuer: Northeastern University
     date: 2026-01-08 # issued 8 Jan 2026 per the badge page; the résumé said 2024
