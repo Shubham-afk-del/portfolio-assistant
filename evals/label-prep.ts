@@ -29,7 +29,7 @@ const SWAPS: readonly (readonly [string, string])[] = [
   ["Senior Analyst", "Team Lead"],
   ["January 2027", "September 2027"],
   ["February 2027", "June 2026"],
-  ["96.25", "92.40"],
+  ["3.85", "3.65"],
   ["Tech Mahindra", "Wipro"],
   ["bcrypt", "MD5"],
   ["SvelteKit", "Django"],

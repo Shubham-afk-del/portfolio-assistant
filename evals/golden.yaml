@@ -89,8 +89,12 @@
   question: What grade did he get at IIIT Bangalore?
   expected_behaviour: answer
   expected_docs: []
-  must_include: ["96.25", "3.85"]
-  notes: profile education, 96.25% (CGPA 3.85 out of 4.0), from his LinkedIn.
+  must_include: ["3.85"]
+  must_not_include: ["96.25", "96%"]
+  notes: >-
+    profile education, CGPA 3.85 out of 4.0 per the upGrad scorecard; it gives
+    no overall percentage, and 96.25% is only 3.85/4.0 rescaled, so a
+    percentage would be invented.
 
 - id: factual-bca-result
   category: factual
